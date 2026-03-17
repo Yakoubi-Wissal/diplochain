@@ -1,0 +1,22 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from routers import blockchain
+
+app = FastAPI(
+    title="DiploChain Blockchain Service",
+    version="1.0.0",
+    description="Interacts with Hyperledger Fabric and stores transaction references",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(blockchain.router)
+
+@app.on_event("startup")

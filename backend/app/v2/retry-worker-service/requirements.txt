@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy[aio]
+pydantic
+httpx
+pytest
+pytest-asyncio
+apscheduler
+
+# Database
+pydantic-settings>=2.0.0
+asyncpg>=0.29.0

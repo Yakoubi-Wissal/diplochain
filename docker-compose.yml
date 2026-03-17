@@ -1,0 +1,336 @@
+services:
+  postgres:
+    image: postgres:14.2
+    container_name: diplochain_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: diplochain_user
+      POSTGRES_PASSWORD: diplochain_pass
+      POSTGRES_DB: diplochain_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U diplochain_user -d diplochain_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: diplochain_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@diplochain.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  ipfs-node:
+    image: ipfs/kubo:latest
+    container_name: diplochain_ipfs
+    ports:
+      - "8080:8080"
+      - "5001:5001"
+    volumes:
+      - ipfs_data:/data/ipfs
+
+  fabric-gateway:
+    image: hyperledger/fabric-peer:latest
+    container_name: diplochain_fabric
+    ports:
+      - "7051:7051"
+    # Ajouter un volume pour les certificats si nécessaire
+    # volumes:
+    #   - ./crypto-config:/etc/hyperledger/fabric
+
+  backend:
+    build: ./backend
+    container_name: diplochain_backend
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+      - SECRET_KEY=changeme
+      - ALLOWED_ORIGINS=http://localhost:3000
+      - FABRIC_STUB_MODE=true
+      - IPFS_HOST=ipfs-node
+      - IPFS_PORT=5001
+    volumes:
+      - ./backend:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+      - ipfs-node
+      - fabric-gateway
+
+  api-gateway:
+    build: ./backend/app/v2/api-gateway
+    container_name: diplochain_api_gateway
+    working_dir: /app
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/api-gateway/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - user-service
+      - institution-service
+      - student-service
+      - diploma-service
+      - document-service
+      - blockchain-service
+      - storage-service
+      - verification-service
+      - analytics-service
+
+  retry-worker-service:
+    build: ./backend/app/v2/retry-worker-service
+    container_name: diplochain_v2_retry_worker
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/retry-worker-service/app:/app
+    networks:
+      - diplochain-network
+
+  user-service:
+    build: ./backend/app/v2/user-service
+    container_name: diplochain_user_service
+    working_dir: /app
+    ports:
+      - "8100:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/user-service/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+
+  institution-service:
+    build: ./backend/app/v2/institution-service
+    container_name: diplochain_institution_service
+    working_dir: /app
+    ports:
+      - "8200:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/institution-service/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+
+  student-service:
+    build: ./backend/app/v2/student-service
+    container_name: diplochain_student_service
+    working_dir: /app
+    ports:
+      - "8300:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/student-service/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+
+  diploma-service:
+    build: ./backend/app/v2/diploma-service
+    container_name: diplochain_diploma_service
+    working_dir: /app
+    ports:
+      - "8400:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/diploma-service/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+
+  document-service:
+    build: ./backend/app/v2/document-service
+    container_name: diplochain_document_service
+    working_dir: /app
+    ports:
+      - "8500:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/document-service/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+
+  blockchain-service:
+    build: ./backend/app/v2/blockchain-service
+    container_name: diplochain_blockchain_service
+    working_dir: /app
+    ports:
+      - "8600:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+      - FABRIC_GATEWAY_HOST=fabric-gateway
+      - FABRIC_GATEWAY_PORT=7051
+    volumes:
+      - ./backend/app/v2/blockchain-service/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+      - fabric-gateway
+
+  storage-service:
+    build: ./backend/app/v2/storage-service
+    container_name: diplochain_storage_service
+    working_dir: /app
+    ports:
+      - "8700:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+      - IPFS_HOST=ipfs-node
+      - IPFS_PORT=5001
+    volumes:
+      - ./backend/app/v2/storage-service/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+      - ipfs-node
+
+  verification-service:
+    build: ./backend/app/v2/verification-service
+    container_name: diplochain_verification_service
+    working_dir: /app
+    ports:
+      - "8800:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/verification-service/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+
+  analytics-service:
+    build: ./backend/app/v2/analytics-service
+    container_name: diplochain_analytics_service
+    working_dir: /app
+    ports:
+      - "8900:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/analytics-service/app:/app
+    networks:
+      - diplochain-network
+    depends_on:
+      - postgres
+
+  pdf-generator-service:
+    build: ./backend/app/v2/pdf-generator-service
+    container_name: diplochain_v2_pdf_generator
+    working_dir: /app
+    ports:
+      - "8005:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/pdf-generator-service/app:/app
+    networks:
+      - diplochain-network
+
+  qr-validation-service:
+    build: ./backend/app/v2/qr-validation-service
+    container_name: diplochain_v2_qr_validation
+    working_dir: /app
+    ports:
+      - "8006:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/qr-validation-service/app:/app
+    networks:
+      - diplochain-network
+
+  admin-dashboard-service:
+    build: ./backend/app/v2/admin-dashboard-service
+    container_name: diplochain_v2_admin_dashboard
+    working_dir: /app
+    ports:
+      - "8007:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/admin-dashboard-service/app:/app
+    networks:
+      - diplochain-network
+
+  entreprise-service:
+    build: ./backend/app/v2/entreprise-service
+    container_name: diplochain_v2_entreprise
+    working_dir: /app
+    ports:
+      - "8008:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/entreprise-service/app:/app
+    networks:
+      - diplochain-network
+
+  notification-service:
+    build: ./backend/app/v2/notification-service
+    container_name: diplochain_v2_notification
+    working_dir: /app
+    ports:
+      - "8009:8000"
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+    volumes:
+      - ./backend/app/v2/notification-service/app:/app
+    networks:
+      - diplochain-network
+
+networks:
+  diplochain-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  ipfs_data:

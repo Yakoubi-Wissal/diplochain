@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+
+# Env
+.env
+
+# Node
+node_modules/
+
+# Logs
+*.log
+
+# Windows files
+*.Zone.Identifier
+
+# Backup files
+*.backup
+*.backup.*
+
+# Docker volumes (if any)
+data/
+db_data/
+
+# IDE
+.vscode/
+.idea/

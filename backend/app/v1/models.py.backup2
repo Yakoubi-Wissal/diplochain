@@ -1,0 +1,395 @@
+"""
+SQLAlchemy async models — alignés sur le schéma réel PostgreSQL (UUID PKs).
+ENUMs exacts depuis schema_diplochain_v5.sql vérifié en base.
+"""
+
+import uuid
+from datetime import date, datetime
+
+from sqlalchemy import (
+    Boolean, Column, Date, DateTime, ForeignKey, Integer,
+    String, Text, func,
+)
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy import Enum as PgEnum
+
+
+# ──────────────────────────────────────────────
+# Base
+# ──────────────────────────────────────────────
+
+class Base(DeclarativeBase):
+    pass
+
+
+# ──────────────────────────────────────────────
+# ENUMs PostgreSQL — valeurs EXACTES du schéma v5
+# (create_type=False → déjà créés en base)
+# ──────────────────────────────────────────────
+
+statut_institution_enum = PgEnum(
+    "ACTIVE", "SUSPENDUE", "ARCHIVEE",
+    name="statut_institution", create_type=False
+)
+
+statut_user_enum = PgEnum(
+    "ACTIF", "EN_ATTENTE", "SUSPENDU",
+    name="statut_user", create_type=False
+)
+
+statut_diplome_enum = PgEnum(
+    "PENDING_BLOCKCHAIN", "ORIGINAL", "MODIFIE", "DUPLIQUE", "REVOQUE",
+    name="statut_diplome", create_type=False
+)
+
+type_operation_enum = PgEnum(
+    "CREATION", "MODIFICATION", "REVOCATION", "DUPLICATION", "VERIFICATION",
+    name="type_operation", create_type=False
+)
+
+statut_validation_enum = PgEnum(
+    "EN_ATTENTE", "APPROUVEE", "REFUSEE",
+    name="statut_validation", create_type=False
+)
+
+
+# ══════════════════════════════════════════════
+# TABLES UUID
+# ══════════════════════════════════════════════
+
+class Role(Base):
+    __tablename__ = "role"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    code = Column(String(50), nullable=False, unique=True)
+    nom = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    permissions = Column(ARRAY(Text), nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    users = relationship("User", back_populates="role")
+
+
+class Institution(Base):
+    __tablename__ = "institution"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    nom = Column(String(200), nullable=False)
+    code = Column(String(20), nullable=False, unique=True)
+    channel_id = Column(String(100), nullable=True, unique=True)
+    peer_node_url = Column(String(255), nullable=True)
+    statut = Column(statut_institution_enum, nullable=False, server_default="ACTIVE")
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    users = relationship("User", back_populates="institution")
+    specialites = relationship("Specialite", back_populates="institution")
+    diplomes = relationship("Diplome", back_populates="institution")
+    templates = relationship("TemplateDepartement", back_populates="institution")
+
+
+class Specialite(Base):
+    __tablename__ = "specialite"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    nom = Column(String(255), nullable=False)
+    code = Column(String(50), nullable=False, unique=True)
+    institution_id = Column(UUID(as_uuid=True), ForeignKey("institution.id"), nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    institution = relationship("Institution", back_populates="specialites")
+    diplomes = relationship("Diplome", back_populates="specialite")
+
+
+class Entreprise(Base):
+    __tablename__ = "entreprise"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    raison_sociale = Column(String(255), nullable=False)
+    siret = Column(String(20), nullable=True, unique=True)
+    secteur_activite = Column(String(255), nullable=True)
+    microsoft_tenant_id = Column(String(255), nullable=True)
+    microsoft_email_domain = Column(String(255), nullable=True)
+    statut = Column(statut_validation_enum, nullable=False, server_default="EN_ATTENTE")
+    invitation_token = Column(String(500), nullable=True, unique=True)
+    valide_par = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True
+    )
+    created_at = Column(DateTime, nullable=True, server_default=func.now())
+
+    validateur = relationship(
+        "User", foreign_keys=[valide_par], back_populates="entreprises_validees"
+    )
+    users = relationship(
+        "User", foreign_keys="User.entreprise_id", back_populates="entreprise"
+    )
+    auth_sessions = relationship("EntrepriseAuthSession", back_populates="entreprise")
+    validation_requests = relationship("EntrepriseValidationRequest", back_populates="entreprise")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    nom = Column(String(100), nullable=False)
+    prenom = Column(String(100), nullable=False)
+    email = Column(String(255), nullable=False, unique=True)
+    password_hash = Column(String(255), nullable=False)
+    statut = Column(statut_user_enum, nullable=False, server_default="EN_ATTENTE")
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    last_login = Column(DateTime, nullable=True)
+    niveau_acces = Column(String(50), nullable=True, default="GLOBAL")
+    derniere_action_audit = Column(DateTime, nullable=True)
+    channel_session = Column(String(255), nullable=True)
+    permissions = Column(ARRAY(Text), nullable=True)
+    blockchain_address = Column(String(255), nullable=True, unique=True)
+    numero_etudiant = Column(String(50), nullable=True)
+    date_naissance = Column(Date, nullable=True)
+    promotion = Column(String(100), nullable=True)
+    microsoft_email = Column(String(255), nullable=True)
+    ms_auth_validated_at = Column(DateTime, nullable=True)
+
+    role_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("role.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+    institution_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("institution.id"),
+        nullable=True
+    )
+    entreprise_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("entreprise.id"),
+        nullable=True
+    )
+
+    role = relationship("Role", back_populates="users")
+    institution = relationship("Institution", back_populates="users")
+    entreprise = relationship(
+        "Entreprise", foreign_keys=[entreprise_id], back_populates="users"
+    )
+    entreprises_validees = relationship(
+        "Entreprise", foreign_keys="Entreprise.valide_par", back_populates="validateur"
+    )
+    diplomes_etudiant = relationship(
+        "Diplome", foreign_keys="Diplome.etudiant_id", back_populates="etudiant"
+    )
+    diplomes_uploaded = relationship(
+        "Diplome", foreign_keys="Diplome.uploaded_by", back_populates="uploader"
+    )
+    historique = relationship("HistoriqueOperation", back_populates="acteur")
+    qr_codes = relationship("QrCodeRecord", back_populates="etudiant")
+    templates_crees = relationship("TemplateDepartement", back_populates="createur")
+    entreprise_validations_traitees = relationship(
+        "EntrepriseValidationRequest", back_populates="traiteur"
+    )
+
+
+class Diplome(Base):
+    __tablename__ = "diplomes"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    titre = Column(String(255), nullable=False)
+    mention = Column(String(100), nullable=True)
+    date_emission = Column(Date, nullable=False)
+    hash_sha256 = Column(String(64), nullable=False)
+    tx_id_fabric = Column(String(255), nullable=True)
+    ipfs_cid = Column(String(255), nullable=False)
+    statut = Column(statut_diplome_enum, nullable=False, server_default="ORIGINAL")
+    etudiant_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    institution_id = Column(UUID(as_uuid=True), ForeignKey("institution.id"), nullable=False)
+    specialite_id = Column(UUID(as_uuid=True), ForeignKey("specialite.id"), nullable=True)
+    template_id = Column(UUID(as_uuid=True), ForeignKey("template_departement.id"), nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=True, onupdate=func.now())
+    uploaded_by = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+    blockchain_retry_count = Column(Integer, nullable=False, default=0)
+    blockchain_last_retry = Column(DateTime, nullable=True)
+    annee_promotion = Column(String(20), nullable=True)
+    generation_mode = Column(String(20), nullable=False, default="UPLOAD")
+
+    etudiant = relationship(
+        "User", foreign_keys=[etudiant_id], back_populates="diplomes_etudiant"
+    )
+    uploader = relationship(
+        "User", foreign_keys=[uploaded_by], back_populates="diplomes_uploaded"
+    )
+    institution = relationship("Institution", back_populates="diplomes")
+    specialite = relationship("Specialite", back_populates="diplomes")
+    template = relationship("TemplateDepartement", back_populates="diplomes")
+    qr_codes = relationship("QrCodeRecord", back_populates="diplome")
+    historique = relationship("HistoriqueOperation", back_populates="diplome")
+
+
+class TemplateDepartement(Base):
+    __tablename__ = "template_departement"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    nom = Column(String(255), nullable=False)
+    departement_id = Column(UUID(as_uuid=True), nullable=False)
+    institution_id = Column(UUID(as_uuid=True), ForeignKey("institution.id"), nullable=False)
+    fichier_jrxml_path = Column(String(500), nullable=False)
+    fichier_jasper_path = Column(String(500), nullable=False)
+    version = Column(Integer, nullable=False, default=1)
+    is_active = Column(Boolean, nullable=False, default=False)
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=True, onupdate=func.now())
+
+    institution = relationship("Institution", back_populates="templates")
+    createur = relationship("User", back_populates="templates_crees")
+    diplomes = relationship("Diplome", back_populates="template")
+
+
+class QrCodeRecord(Base):
+    """
+    Colonnes réelles vérifiées dans schema_diplochain_v5.sql :
+    id, diplome_id, etudiant_id, qr_code_path, identifiant_opaque,
+    url_verification, created_at
+    """
+    __tablename__ = "qr_code_records"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    diplome_id = Column(UUID(as_uuid=True), ForeignKey("diplomes.id", ondelete="CASCADE"), nullable=False)
+    etudiant_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    qr_code_path = Column(String(255), nullable=False)
+    identifiant_opaque = Column(String(255), nullable=False, unique=True)
+    url_verification = Column(String(500), nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    diplome = relationship("Diplome", back_populates="qr_codes")
+    etudiant = relationship("User", back_populates="qr_codes")
+
+
+class HistoriqueOperation(Base):
+    """
+    Colonnes réelles vérifiées dans schema_diplochain_v5.sql :
+    id, diplome_id, type_operation, ancien_hash, nouvel_hash,
+    tx_id_fabric, acteur_id, ip_address, ms_tenant_id,
+    commentaire, user_agent, timestamp
+    """
+    __tablename__ = "historique_operations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    diplome_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("diplomes.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+    type_operation = Column(type_operation_enum, nullable=False)
+    ancien_hash = Column(String(64), nullable=True)
+    nouvel_hash = Column(String(64), nullable=False)
+    tx_id_fabric = Column(String(255), nullable=False)
+    acteur_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False
+    )
+    ip_address = Column(String(45), nullable=True)
+    ms_tenant_id = Column(String(255), nullable=True)
+    commentaire = Column(Text, nullable=True)
+    user_agent = Column(Text, nullable=True)
+    timestamp = Column(DateTime, nullable=False, server_default=func.now())
+
+    diplome = relationship("Diplome", back_populates="historique")
+    acteur = relationship("User", back_populates="historique")
+
+
+class EntrepriseAuthSession(Base):
+    __tablename__ = "entreprise_auth_sessions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    entreprise_id = Column(UUID(as_uuid=True), ForeignKey("entreprise.id", ondelete="CASCADE"), nullable=False)
+    access_token = Column(Text, nullable=False)
+    refresh_token = Column(Text, nullable=True)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    entreprise = relationship("Entreprise", back_populates="auth_sessions")
+
+
+class EntrepriseValidationRequest(Base):
+    __tablename__ = "entreprise_validation_requests"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    entreprise_id = Column(UUID(as_uuid=True), ForeignKey("entreprise.id"), nullable=False)
+    traite_par = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    statut = Column(statut_validation_enum, nullable=False, server_default="EN_ATTENTE")
+    motif_refus = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=True, onupdate=func.now())
+
+    entreprise = relationship("Entreprise", back_populates="validation_requests")
+    traiteur = relationship("User", back_populates="entreprise_validations_traitees")
+
+
+class DashboardMetricsDaily(Base):
+    __tablename__ = "dashboard_metrics_daily"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    date_metrique = Column(Date, nullable=False)
+    institution_id = Column(UUID(as_uuid=True), ForeignKey("institution.id"), nullable=True)
+    nb_diplomes_emis = Column(Integer, nullable=False, default=0)
+    nb_verifications_qr = Column(Integer, nullable=False, default=0)
+    nb_nouveaux_etudiants = Column(Integer, nullable=False, default=0)
+    nb_entreprises_en_attente = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+
+# ══════════════════════════════════════════════
+# TABLES LEGACY — conservées telles quelles
+# ══════════════════════════════════════════════
+
+class UserRole(Base):
+    __tablename__ = "UserRole"
+    user_id = Column(Integer, primary_key=True)
+    role_id = Column(Integer, primary_key=True)
+
+
+class Etudiant(Base):
+    __tablename__ = "etudiant"
+    etudiant_id = Column(String, primary_key=True)
+    email_etudiant = Column(String, nullable=True)
+    nom = Column(String, nullable=True)
+    prenom = Column(String, nullable=True)
+    date_naissance = Column(Date, nullable=True)
+    num_cin = Column(String, nullable=True)
+    num_passeport = Column(String, nullable=True)
+    entreprise_id = Column(Integer, nullable=True)
+    telephone = Column(String, nullable=True)
+    code_nationalite = Column(String, nullable=True)
+    code_specialite = Column(String, nullable=True)
+    date_delivrance = Column(Date, nullable=True)
+    lieu_nais_et = Column(String, nullable=True)
+    sexe = Column(String, nullable=True)
+    lieu_delivrance = Column(String, nullable=True)
+    id_user = Column(Integer, nullable=True)
+    adresse_postale = Column(String, nullable=True)
+    code_postal = Column(String, nullable=True)
+    ville = Column(String, nullable=True)
+    gouvernorat = Column(String, nullable=True)
+    linkedin_id = Column(String, nullable=True)
+    linkedin_url = Column(String, nullable=True)
+    linkedin_data_id = Column(Integer, nullable=True)
+    email_esprit_etudiant = Column(String, nullable=True)
+
+
+class EtudiantDiplome(Base):
+    __tablename__ = "etudiant_diplome"
+    id_diplome = Column(Integer, primary_key=True, autoincrement=True)
+    etudiant_id = Column(String, nullable=False)
+    session_diplome = Column(String, nullable=False)
+    id_annexe = Column(Integer, nullable=False)
+    num_diplome = Column(Integer, nullable=False)
+    date_diplome = Column(Date, nullable=False)
+    date_liv_diplome = Column(Date, nullable=False)
