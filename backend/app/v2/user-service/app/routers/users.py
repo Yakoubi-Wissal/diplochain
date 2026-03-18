@@ -7,9 +7,9 @@ from core.database import AsyncSessionLocal
 from core.models import User, Role, UserRole
 from core.schemas import UserCreate, UserRead, UserUpdate
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix="", tags=["Users"])
 
-@router.get("/", tags=["Health"])
+@router.get("/health", tags=["Health"])
 async def health():
     return {"status": "ok"}
 
@@ -37,7 +37,7 @@ async def read_user(user_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return result
 
-@router.get("/", response_model=List[UserRead])
+@router.get("/all", response_model=List[UserRead])
 async def list_users(status: Optional[str] = None, db: AsyncSession = Depends(get_db)):
     query_str = "SELECT * FROM \"User\""
     params = {}

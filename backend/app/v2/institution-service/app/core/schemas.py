@@ -39,4 +39,17 @@ class InstitutionBlockchainRead(InstitutionBlockchainBase):
     created_at: Optional[datetime]
     model_config = {"from_attributes": True}
 
-# additional schemas for specialite_ext and template_departement can be added later
+class InstitutionUpdate(BaseModel):
+    nom_institution: Optional[str] = None
+    adresse: Optional[str] = None
+    code_postal: Optional[str] = None
+    ville: Optional[str] = None
+    date_creation: Optional[date] = None
+    pays: Optional[str] = None
+    telephone: Optional[str] = None
+    email_institution: Optional[EmailStr] = None
+    site_web: Optional[str] = None
+    chiffre_affaires: Optional[float] = None
+    nombre_employes: Optional[int] = None
+    description: Optional[str] = None
+    id_group_institution: Optional[int] = None

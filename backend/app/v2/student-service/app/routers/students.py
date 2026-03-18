@@ -8,7 +8,7 @@ from core.database import AsyncSessionLocal
 from core.models import Student
 from core.schemas import StudentCreate, StudentRead
 
-router = APIRouter(prefix="/students", tags=["Students"])
+router = APIRouter(prefix="", tags=["Students"])
 
 async def get_db():
     async with AsyncSessionLocal() as s:
@@ -33,11 +33,12 @@ async def read_student(etudiant_id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Student not found")
     return student
 
-@router.get("/", response_model=list[StudentRead])
+@router.get("/search", response_model=list[StudentRead])
 async def search_students(
-    nom: Optional[str] = None,
+    nom: Optional[str] = None, 
     prenom: Optional[str] = None,
     email_etudiant: Optional[str] = None,
+    institution_id: Optional[int] = None,
     db: AsyncSession = Depends(get_db),
 ):
     query_str = "SELECT * FROM etudiant"
@@ -52,6 +53,9 @@ async def search_students(
     if email_etudiant:
         clauses.append("email_etudiant ILIKE :email_etudiant")
         params["email_etudiant"] = f"%{email_etudiant}%"
+    if institution_id:
+        clauses.append("institution_id = :institution_id")
+        params["institution_id"] = institution_id
     if clauses:
         query_str += " WHERE " + " AND ".join(clauses)
     result = await db.execute(text(query_str), params)

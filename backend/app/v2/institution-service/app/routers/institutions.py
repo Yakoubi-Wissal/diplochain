@@ -5,9 +5,9 @@ from typing import List, Optional
 
 from core.database import AsyncSessionLocal
 from core.models import Institution, InstitutionBlockchainExt
-from core.schemas import InstitutionCreate, InstitutionRead, InstitutionBlockchainRead, InstitutionBlockchainBase
+from core.schemas import InstitutionCreate, InstitutionRead, InstitutionBlockchainRead, InstitutionBlockchainBase, InstitutionUpdate
 
-router = APIRouter(prefix="/institutions", tags=["Institutions"])
+router = APIRouter(prefix="", tags=["Institutions"])
 
 async def get_db():
     async with AsyncSessionLocal() as s:
@@ -44,7 +44,7 @@ async def get_institution(institution_id: int, db: AsyncSession = Depends(get_db
     return inst
 
 @router.put("/{institution_id}", response_model=InstitutionRead)
-async def update_institution(institution_id: int, inst: InstitutionRead, db: AsyncSession = Depends(get_db)):
+async def update_institution(institution_id: int, inst: InstitutionUpdate, db: AsyncSession = Depends(get_db)):
     db_inst = await db.get(Institution, institution_id)
     if not db_inst:
         raise HTTPException(status_code=404, detail="Institution not found")
@@ -69,6 +69,6 @@ async def list_students_for_institution(institution_id: int):
     import httpx
     async with httpx.AsyncClient(timeout=5) as client:
         resp = await client.get(
-            f"http://student-service:8000/students?institution_id={institution_id}"
+            f"http://student-service:8000/students/search?institution_id={institution_id}"
         )
     return resp.json()

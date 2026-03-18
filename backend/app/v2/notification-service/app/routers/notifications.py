@@ -7,7 +7,7 @@ from core.database import AsyncSessionLocal
 from core.models import Notification
 from core.schemas import NotificationCreate, NotificationRead
 
-router = APIRouter(prefix="/notifications", tags=["Notifications"])
+router = APIRouter(prefix="", tags=["Notifications"])
 
 async def get_db():
     async with AsyncSessionLocal() as s:
@@ -34,6 +34,8 @@ async def read_notification(notification_id: int, db: AsyncSession = Depends(get
 
 @router.get("/user/{user_id}", response_model=list[NotificationRead])
 async def get_user_notifications(user_id: int, db: AsyncSession = Depends(get_db)):
-    query = "SELECT * FROM notification WHERE user_id = :user_id"
-    result = await db.execute(text(query), {"user_id": user_id})
+    from sqlalchemy import select
+    result = await db.execute(
+        select(Notification).where(Notification.user_id == user_id)
+    )
     return result.scalars().all()

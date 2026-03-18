@@ -1,37 +1,57 @@
-import uuid
-from datetime import date
-
-from sqlalchemy import Column, String, Date, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
-
+from datetime import date, datetime
+from sqlalchemy import Column, String, Date, Integer, DateTime, ForeignKey, Enum
+from sqlalchemy.orm import relationship
 from core.database import Base
 
-# models aligned with central diplochain_db schema (UUID primary keys)
+class EtudiantDiplome(Base):
+    __tablename__ = "etudiant_diplome"
+    
+    id_diplome = Column(Integer, primary_key=True, autoincrement=True)
+    etudiant_id = Column(String(20), nullable=False)
+    session_diplome = Column(String(50), nullable=False)
+    id_annexe = Column(Integer, nullable=False)
+    num_diplome = Column(Integer, nullable=False)
+    date_diplome = Column(Date, nullable=False)
+    date_liv_diplome = Column(Date, nullable=False)
 
-class Diploma(Base):
-    __tablename__ = "diplomes"  # note: french plural to match existing schema
+    blockchain_ext = relationship("DiplomeBlockchainExt", back_populates="diplome", uselist=False)
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    titre = Column(String(255), nullable=False)
-    mention = Column(String(100), nullable=True)
-    date_emission = Column(Date, nullable=False)
-    hash_sha256 = Column(String(64), nullable=False)
-    tx_id_fabric = Column(String(255), nullable=True)
-    ipfs_cid = Column(String(255), nullable=False)
-    statut = Column(String(50), nullable=False, server_default="ORIGINAL")
-    etudiant_id = Column(UUID(as_uuid=True), nullable=False)
-    institution_id = Column(UUID(as_uuid=True), nullable=False)
-    specialite_id = Column(UUID(as_uuid=True), nullable=True)
-    template_id = Column(UUID(as_uuid=True), nullable=True)
-    created_at = Column(Date, nullable=False, server_default="now()")
-    updated_at = Column(Date, nullable=True)
-    uploaded_by = Column(UUID(as_uuid=True), nullable=False)
+class DiplomeBlockchainExt(Base):
+    __tablename__ = "diplome_blockchain_ext"
 
-class DiplomaStatusHistory(Base):
-    __tablename__ = "diploma_status_history"
+    id_diplome = Column(Integer, ForeignKey("etudiant_diplome.id_diplome"), primary_key=True)
+    titre = Column(String(255))
+    mention = Column(String(50))
+    date_emission = Column(Date)
+    annee_promotion = Column(String(20))
+    hash_sha256 = Column(String(64), unique=True)
+    tx_id_fabric = Column(String(255))
+    ipfs_cid = Column(String(100))
+    statut = Column(String, default="PENDING_BLOCKCHAIN")
+    blockchain_retry_count = Column(Integer, default=0)
+    blockchain_last_retry = Column(DateTime)
+    generation_mode = Column(String(20), default="UPLOAD")
+    template_id = Column(Integer)
+    institution_id = Column(Integer)
+    specialite_id = Column(String(3))
+    uploaded_by = Column(Integer)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    diploma_id = Column(UUID(as_uuid=True), ForeignKey("diplomes.id"), nullable=False)
-    old_status = Column(String(50), nullable=False)
-    new_status = Column(String(50), nullable=False)
-    changed_at = Column(Date, nullable=False, default=date.today)
+    diplome = relationship("EtudiantDiplome", back_populates="blockchain_ext")
+
+class HistoriqueOperations(Base):
+    __tablename__ = "historique_operations"
+
+    historique_operations_id = Column(Integer, primary_key=True, autoincrement=True)
+    diplome_id = Column(Integer, ForeignKey("etudiant_diplome.id_diplome"), nullable=False)
+    type_operation = Column(String, nullable=False)
+    ancien_hash = Column(String(64))
+    nouvel_hash = Column(String(64), nullable=False)
+    tx_id_fabric = Column(String(255), nullable=False)
+    acteur_id = Column(Integer, nullable=False)
+    ip_address = Column(String(45))
+    ms_tenant_id = Column(String(255))
+    commentaire = Column(String)
+    user_agent = Column(String)
+    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)

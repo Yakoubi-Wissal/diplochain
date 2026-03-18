@@ -1,16 +1,24 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, APIRouter
-from fastapi.responses import Response
+from fastapi import FastAPI, APIRouter, Response
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import io
 from reportlab.pdfgen import canvas
-
-router = APIRouter(prefix="/pdf", tags=["PDF"])
 
 app = FastAPI(
     title="DiploChain PDF Generator Service",
     version="1.0.0",
     description="Microservice to generate diploma PDFs without DB access"
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+router = APIRouter(prefix="", tags=["PDF"])
 
 class StudentData(BaseModel):
     nom: str
@@ -37,8 +45,6 @@ class GenerateRequest(BaseModel):
 
 @router.post("/generate-diploma", response_class=Response)
 async def generate_diploma(request: GenerateRequest):
-    # This is a mockup of the PDF generation logic from the V6 architecture
-    # In reality, this would use WeasyPrint or advanced ReportLab rendering
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer)
     c.drawString(100, 750, f"Institution: {request.institution.nom}")
@@ -47,14 +53,20 @@ async def generate_diploma(request: GenerateRequest):
     c.drawString(100, 600, f"Date: {request.diploma.date_emission}")
     c.showPage()
     c.save()
-    
     pdf_bytes = buffer.getvalue()
     buffer.close()
-    
     return Response(content=pdf_bytes, media_type="application/pdf")
 
 @router.get("/health")
 async def health():
+    return {"status": "healthy"}
+
+@app.get("/")
+async def root():
+    return {"service": "pdf-generator-service", "status": "running"}
+
+@app.get("/health")
+async def app_health():
     return {"status": "healthy"}
 
 app.include_router(router)

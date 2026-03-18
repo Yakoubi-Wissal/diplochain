@@ -11,7 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U diplochain_user -d diplochain_db"]
       interval: 10s
@@ -60,6 +60,21 @@ services:
       - storage-service
       - verification-service
       - analytics-service
+      - admin-dashboard-service
+      - entreprise-service
+      - notification-service
+      - pdf-generator-service
+      - qr-validation-service
+
+  frontend:
+    build: ./frontend
+    container_name: diplochain_v2_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - diplochain-network
 
   user-service:
     build: ./backend/app/v2/user-service
@@ -135,7 +150,10 @@ services:
       - ./backend/app/v2/blockchain-service/tests:/app/tests
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     depends_on:
-      - fabric-gateway
+      postgres:
+        condition: service_healthy
+      fabric-gateway:
+        condition: service_started
 
   storage-service:
     build: ./backend/app/v2/storage-service
@@ -150,7 +168,10 @@ services:
       - ./backend/app/v2/storage-service/tests:/app/tests
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     depends_on:
-      - ipfs-node
+      postgres:
+        condition: service_healthy
+      ipfs-node:
+        condition: service_started
 
   document-service:
     build: ./backend/app/v2/document-service
@@ -178,6 +199,9 @@ services:
       - ./backend/app/v2/verification-service/app:/app
       - ./backend/app/v2/verification-service/tests:/app/tests
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   analytics-service:
     build: ./backend/app/v2/analytics-service
@@ -190,11 +214,15 @@ services:
       - ./backend/app/v2/analytics-service/app:/app
       - ./backend/app/v2/analytics-service/tests:/app/tests
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   qr-validation-service:
     build: ./backend/app/v2/qr-validation-service
     container_name: diplochain_v2_qr_validation
     environment:
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
       - BLOCKCHAIN_URL=http://blockchain-service:8000
       - IPFS_URL=http://ipfs-node:5001
     networks:
@@ -203,6 +231,9 @@ services:
       - ./backend/app/v2/qr-validation-service/app:/app
       - ./backend/app/v2/qr-validation-service/tests:/app/tests
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   admin-dashboard-service:
     build: ./backend/app/v2/admin-dashboard-service
@@ -215,6 +246,9 @@ services:
       - ./backend/app/v2/admin-dashboard-service/app:/app
       - ./backend/app/v2/admin-dashboard-service/tests:/app/tests
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   entreprise-service:
     build: ./backend/app/v2/entreprise-service
@@ -227,6 +261,9 @@ services:
       - ./backend/app/v2/entreprise-service/app:/app
       - ./backend/app/v2/entreprise-service/tests:/app/tests
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   notification-service:
     build: ./backend/app/v2/notification-service
@@ -239,6 +276,9 @@ services:
       - ./backend/app/v2/notification-service/app:/app
       - ./backend/app/v2/notification-service/tests:/app/tests
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   pdf-generator-service:
     build: ./backend/app/v2/pdf-generator-service
@@ -251,12 +291,17 @@ services:
       - ./backend/app/v2/pdf-generator-service/app:/app
       - ./backend/app/v2/pdf-generator-service/tests:/app/tests
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   retry-worker-service:
     build: ./backend/app/v2/retry-worker-service
     container_name: diplochain_v2_retry_worker
     environment:
       - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
+    ports:
+      - "8015:8000"
     networks:
       - diplochain-network
     volumes:

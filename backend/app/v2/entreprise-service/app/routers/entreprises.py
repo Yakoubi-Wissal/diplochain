@@ -7,7 +7,7 @@ from core.database import AsyncSessionLocal
 from core.models import Entreprise
 from core.schemas import EntrepriseCreate, EntrepriseRead
 
-router = APIRouter(prefix="/entreprises", tags=["Entreprises"])
+router = APIRouter(prefix="", tags=["Entreprises"])
 
 async def get_db():
     async with AsyncSessionLocal() as s:

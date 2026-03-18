@@ -10,7 +10,7 @@ from core.schemas import TokenResponse, UserRead
 from core.security import verify_password, create_access_token
 from core.dependencies import get_current_user
 
-router = APIRouter(prefix="/users/auth", tags=["Authentification"])
+router = APIRouter(prefix="", tags=["Authentification"])
 
 async def get_db():
     async with AsyncSessionLocal() as session:

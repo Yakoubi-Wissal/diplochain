@@ -7,7 +7,7 @@ from core.database import AsyncSessionLocal
 from core.models import Role
 from core.schemas import RoleRead, RoleCreate
 
-router = APIRouter(prefix="/users/roles", tags=["Roles"])
+router = APIRouter(prefix="", tags=["Roles"])
 
 async def get_db():
     async with AsyncSessionLocal() as session:

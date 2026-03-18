@@ -1,4 +1,5 @@
 services:
+
   postgres:
     image: postgres:14.2
     container_name: diplochain_postgres
@@ -13,10 +14,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U diplochain_user -d diplochain_db"]
+      test: [ "CMD-SHELL", "pg_isready -U diplochain_user -d diplochain_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - diplochain-network
 
   pgadmin:
     image: dpage/pgadmin4
@@ -28,7 +31,10 @@ services:
     ports:
       - "5050:80"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    networks:
+      - diplochain-network
 
   ipfs-node:
     image: ipfs/kubo:latest
@@ -38,15 +44,16 @@ services:
       - "5001:5001"
     volumes:
       - ipfs_data:/data/ipfs
+    networks:
+      - diplochain-network
 
   fabric-gateway:
     image: hyperledger/fabric-peer:latest
     container_name: diplochain_fabric
     ports:
       - "7051:7051"
-    # Ajouter un volume pour les certificats si nécessaire
-    # volumes:
-    #   - ./crypto-config:/etc/hyperledger/fabric
+    networks:
+      - diplochain-network
 
   backend:
     build: ./backend
@@ -109,7 +116,7 @@ services:
 
   user-service:
     build: ./backend/app/v2/user-service
-    container_name: diplochain_user_service
+    container_name: diplochain_v2_user
     working_dir: /app
     ports:
       - "8100:8000"
@@ -125,7 +132,7 @@ services:
 
   institution-service:
     build: ./backend/app/v2/institution-service
-    container_name: diplochain_institution_service
+    container_name: diplochain_v2_institution
     working_dir: /app
     ports:
       - "8200:8000"
@@ -141,7 +148,7 @@ services:
 
   student-service:
     build: ./backend/app/v2/student-service
-    container_name: diplochain_student_service
+    container_name: diplochain_v2_student
     working_dir: /app
     ports:
       - "8300:8000"
@@ -157,7 +164,7 @@ services:
 
   diploma-service:
     build: ./backend/app/v2/diploma-service
-    container_name: diplochain_diploma_service
+    container_name: diplochain_v2_diploma
     working_dir: /app
     ports:
       - "8400:8000"
@@ -173,7 +180,7 @@ services:
 
   document-service:
     build: ./backend/app/v2/document-service
-    container_name: diplochain_document_service
+    container_name: diplochain_v2_document
     working_dir: /app
     ports:
       - "8500:8000"
@@ -189,7 +196,7 @@ services:
 
   blockchain-service:
     build: ./backend/app/v2/blockchain-service
-    container_name: diplochain_blockchain_service
+    container_name: diplochain_v2_blockchain
     working_dir: /app
     ports:
       - "8600:8000"
@@ -208,7 +215,7 @@ services:
 
   storage-service:
     build: ./backend/app/v2/storage-service
-    container_name: diplochain_storage_service
+    container_name: diplochain_v2_storage
     working_dir: /app
     ports:
       - "8700:8000"
@@ -227,7 +234,7 @@ services:
 
   verification-service:
     build: ./backend/app/v2/verification-service
-    container_name: diplochain_verification_service
+    container_name: diplochain_v2_verification
     working_dir: /app
     ports:
       - "8800:8000"
@@ -243,7 +250,7 @@ services:
 
   analytics-service:
     build: ./backend/app/v2/analytics-service
-    container_name: diplochain_analytics_service
+    container_name: diplochain_v2_analytics
     working_dir: /app
     ports:
       - "8900:8000"

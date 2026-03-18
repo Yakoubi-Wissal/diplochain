@@ -5,10 +5,10 @@ from datetime import datetime
 class QrCodeRecordBase(BaseModel):
     diplome_id: int
     etudiant_id: str
-    qr_code_path: str
-    identifiant_opaque: str
-    url_verification: str
-    created_at: Optional[datetime]
+    qr_code_path: Optional[str] = None
+    identifiant_opaque: Optional[str] = None
+    url_verification: Optional[str] = None
+    created_at: Optional[datetime] = None
 
 class QrCodeRecordRead(QrCodeRecordBase):
     qr_code_records_id: int

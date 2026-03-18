@@ -1,0 +1,79 @@
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+import httpx
+
+app = FastAPI(
+    title="DiploChain API Gateway",
+    version="1.0.0",
+    description="Routes frontend requests to microservices",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+SERVICE_MAP = {
+    "users": "http://user-service:8000",
+    "institutions": "http://institution-service:8000",
+    "students": "http://student-service:8000",
+    "diplomas": "http://diploma-service:8000",
+    "documents": "http://document-service:8000",
+    "blockchain": "http://blockchain-service:8000",
+    "storage": "http://storage-service:8000",
+    "verify": "http://verification-service:8000",
+    "analytics": "http://analytics-service:8000",
+    "entreprises": "http://entreprise-service:8000",
+    "notifications": "http://notification-service:8000",
+    "pdf": "http://pdf-generator-service:8000",
+    "admin": "http://admin-dashboard-service:8000",
+    "qr": "http://qr-validation-service:8000",
+}
+
+@app.api_route("/api/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def proxy(service: str, path: str, request: Request):
+    base = SERVICE_MAP.get(service)
+    if not base:
+        return {"error": "unknown service"}
+
+    # Ensure we don't end up with double slashes but preserve the trailing slash intent
+    url_path = path if not path.startswith("/") else path[1:]
+    url = f"{base}/{url_path}"
+    
+    async with httpx.AsyncClient() as client:
+        print(f"DEBUG: Proxying {request.method} {request.url} -> {url}")
+        resp = await client.request(
+            request.method,
+            url,
+            headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
+            content=await request.body(),
+            params=request.query_params,
+        )
+        
+        # Determine how to return the response based on Content-Type
+        content_type = resp.headers.get("content-type", "")
+        headers = {k: v for k, v in resp.headers.items() if k.lower() not in ["content-length", "content-encoding"]}
+        
+        print(f"DEBUG: Backend returned {resp.status_code}")
+        
+        if "application/json" in content_type:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                content=resp.json(),
+                status_code=resp.status_code,
+                headers=headers
+            )
+        
+        from fastapi import Response
+        return Response(
+            content=resp.content,
+            status_code=resp.status_code,
+            headers=headers
+        )
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

@@ -1,13 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from core.config import settings
+from core.database import engine, Base
+
 from routers import institutions
 
 app = FastAPI(
-    title="DiploChain Institution Service",
-    version="1.0.0",
-    description="Manage institutions and related metadata",
+    title="institution-service",
+    description="DiploChain Institution Service",
+    version="1.0.0"
 )
 
 app.add_middleware(
@@ -18,9 +19,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(institutions.router)
-
 @app.on_event("startup")
-async def on_startup():
-    from core.database import init_db
-    await init_db()
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+@app.get("/")
+async def root():
+    return {"service": "institution-service", "status": "running"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
+
+app.include_router(institutions.router, prefix="")

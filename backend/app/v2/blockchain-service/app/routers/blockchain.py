@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text
+from sqlalchemy import text,select
 from typing import List, Optional
 from datetime import date
 
@@ -8,7 +8,7 @@ from core.database import AsyncSessionLocal
 from core.models import DiplomaBlockchain
 from core.schemas import DiplomaBlockchainRead, DiplomaBlockchainCreate
 
-router = APIRouter(prefix="/blockchain", tags=["Blockchain"])
+router = APIRouter(prefix="", tags=["Blockchain"])
 
 async def get_db():
     async with AsyncSessionLocal() as s:
@@ -35,10 +35,9 @@ async def get_blockchain(id_diplome: int, db: AsyncSession = Depends(get_db)):
 
 @router.get("/diplomes", response_model=List[DiplomaBlockchainRead])
 async def list_blockchain(institution_id: Optional[int] = None, db: AsyncSession = Depends(get_db)):
-    query = text("SELECT * FROM diplome_blockchain_ext")
-    params = {}
+    from sqlalchemy import select
+    query = select(DiplomaBlockchain)
     if institution_id is not None:
-        query += " WHERE institution_id = :inst"
-        params["inst"] = institution_id
-    result = await db.execute(query, params)
+        query = query.where(DiplomaBlockchain.institution_id == institution_id)
+    result = await db.execute(query)
     return result.scalars().all()

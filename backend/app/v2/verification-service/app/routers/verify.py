@@ -6,7 +6,7 @@ from core.database import AsyncSessionLocal
 from core.models import QrCodeRecord, HistoriqueOperation
 from core.schemas import QrCodeRecordRead, QrCodeRecordBase, HistoriqueOperationRead
 
-router = APIRouter(prefix="/verify", tags=["Verify"])
+router = APIRouter(prefix="", tags=["Verify"])
 
 async def get_db():
     async with AsyncSessionLocal() as s:

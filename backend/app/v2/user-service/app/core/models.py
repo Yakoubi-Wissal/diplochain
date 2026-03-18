@@ -30,7 +30,6 @@ class User(Base):
     expired = Column(Boolean)
     email = Column(String(255), unique=True)
     reset_code = Column(String(255))
-    tokentype = Column(String(50))
     verificationtoken_expiration = Column(DateTime)
     reset_code_expiration = Column(DateTime)
     verification_token = Column(String(255), unique=True)

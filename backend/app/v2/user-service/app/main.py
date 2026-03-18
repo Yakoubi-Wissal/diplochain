@@ -1,21 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from core.config import settings
-from routers import users, roles, auth
+from core.database import engine, Base
+
+from routers import users, auth, roles
 
 app = FastAPI(
-    title="DiploChain User Service",
-    version="1.0.0",
-    description="Manages users, roles, and authentication mappings",
+    title="user-service",
+    description="DiploChain User Service",
+    version="1.0.0"
 )
-
-from core.database import init_db
-
-@app.on_event("startup")
-async def on_startup():
-    # ensure tables exist
-    await init_db()
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,6 +19,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(users.router)
-app.include_router(roles.router)
-app.include_router(auth.router)
+@app.on_event("startup")
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+@app.get("/")
+async def root():
+    return {"service": "user-service", "status": "running"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
+
+# Seed endpoint removed
+
+
+app.include_router(users.router, prefix="")
+app.include_router(auth.router, prefix="/auth")
+app.include_router(roles.router, prefix="/roles")

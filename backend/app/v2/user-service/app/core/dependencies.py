@@ -38,17 +38,26 @@ async def get_current_user(
     except ValueError:
         raise credentials_exception
 
-    result = await db.execute(
-        select(User)
-        .options(selectinload(User.roles).selectinload(UserRole.role))
-        .where(User.id_user == uid)
-    )
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise credentials_exception
-
-    return user
+    try:
+        result = await db.execute(
+            select(User)
+            .options(selectinload(User.roles).selectinload(UserRole.role))
+            .where(User.id_user == uid)
+        )
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            print(f"DEBUG: User {uid} not found in DB")
+            raise credentials_exception
+            
+        return user
+    except Exception as e:
+        print(f"DEBUG: Error in get_current_user: {str(e)}")
+        # Log more info if needed
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal Server Error in Auth: {str(e)}"
+        )
 
 def require_role(*roles: str) -> Callable:
     async def _check(current_user: User = Depends(get_current_user)) -> User:

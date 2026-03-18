@@ -7,7 +7,7 @@ from core.database import AsyncSessionLocal
 from core.models import DashboardMetricsDaily
 from core.schemas import DashboardMetricsDailyRead
 
-router = APIRouter(prefix="/admin", tags=["Super Admin Dashboard"])
+router = APIRouter(prefix="", tags=["Super Admin Dashboard"])
 
 async def get_db():
     async with AsyncSessionLocal() as s:
@@ -17,27 +17,34 @@ async def get_db():
 async def health():
     return {"status": "ok"}
 
-@router.get("/dashboard", response_model=List[DashboardMetricsDailyRead])
-async def get_dashboard_metrics(
-    period: Optional[str] = "today", 
-    db: AsyncSession = Depends(get_db)
-):
-    # In a real impl, period affects the WHERE clause.
-    query = "SELECT * FROM dashboard_metrics_daily ORDER BY metric_date DESC LIMIT 30"
-    result = await db.execute(text(query))
+@router.get("/metrics", response_model=List[DashboardMetricsDailyRead])
+async def get_dashboard_metrics(db: AsyncSession = Depends(get_db)):
+    from sqlalchemy import select
+    result = await db.execute(
+        select(DashboardMetricsDaily).order_by(DashboardMetricsDaily.metric_date.desc()).limit(30)
+    )
+    return result.scalars().all()
+
+@router.get("/metrics/daily")
+async def get_metrics_daily(db: AsyncSession = Depends(get_db)):
+    # This can be a more complex aggregation if needed, for now return the same as metrics
+    from sqlalchemy import select
+    result = await db.execute(
+        select(DashboardMetricsDaily).order_by(DashboardMetricsDaily.metric_date.asc()).limit(30)
+    )
     return result.scalars().all()
 
 @router.get("/diplomas")
 async def list_diplomas_admin(db: AsyncSession = Depends(get_db)):
-    # Mocking returning diplomas 
-    return [{"message": "List of diplomas for admin view"}]
+    result = await db.execute(text("SELECT * FROM diplome_blockchain_ext ORDER BY created_at DESC LIMIT 100"))
+    return [dict(row) for row in result.mappings()]
 
 @router.get("/students")
 async def list_students_admin(db: AsyncSession = Depends(get_db)):
-    # Mocking returning students
-    return [{"message": "List of students for admin view"}]
+    result = await db.execute(text("SELECT * FROM etudiant ORDER BY nom LIMIT 100"))
+    return [dict(row) for row in result.mappings()]
 
 @router.get("/institutions")
 async def list_institutions_admin(db: AsyncSession = Depends(get_db)):
-    # Mocking returning institutions
-    return [{"message": "List of institutions for admin view"}]
+    result = await db.execute(text("SELECT * FROM institution ORDER BY nom_institution LIMIT 100"))
+    return [dict(row) for row in result.mappings()]

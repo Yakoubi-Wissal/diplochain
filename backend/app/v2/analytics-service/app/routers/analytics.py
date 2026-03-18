@@ -6,7 +6,7 @@ from core.database import AsyncSessionLocal
 from core.models import DashboardMetricsDaily, InstitutionStatistics, StudentStatistics
 from core.schemas import DashboardMetricsRead
 
-router = APIRouter(prefix="/analytics", tags=["Analytics"])
+router = APIRouter(prefix="", tags=["Analytics"])
 
 async def get_db():
     async with AsyncSessionLocal() as s:
@@ -18,5 +18,6 @@ async def health():
 
 @router.get("/metrics/daily", response_model=list[DashboardMetricsRead])
 async def list_daily_metrics(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(text("SELECT * FROM dashboard_metrics_daily"))
+    from sqlalchemy import select
+    result = await db.execute(select(DashboardMetricsDaily))
     return result.scalars().all()
