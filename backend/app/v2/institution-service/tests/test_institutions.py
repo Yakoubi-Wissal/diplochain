@@ -12,14 +12,14 @@ for name in list(sys.modules):
         del sys.modules[name]
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
 from app.main import app  # assuming main imports routers
 
 @pytest.mark.asyncio
 async def test_create_and_get_institution(monkeypatch):
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # create
         payload = {
             "nom_institution": "Test Uni",
@@ -39,6 +39,6 @@ async def test_create_and_get_institution(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_list_institutions_filter():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         resp = await client.get("/institutions/?active=true")
         assert resp.status_code == status.HTTP_200_OK

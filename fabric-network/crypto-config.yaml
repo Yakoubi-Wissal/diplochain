@@ -1,0 +1,28 @@
+# =============================================================================
+# DiploChain — crypto-config.yaml
+# Fabric 2.5 | 1 OrdererOrg + 1 PeerOrg (DiploChainOrg)
+# Les canaux par institution sont créés dynamiquement via create-channel.sh
+# =============================================================================
+
+OrdererOrgs:
+  - Name: DiploChainOrderer
+    Domain: orderer.diplochain.local
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+        SANS:
+          - localhost
+          - 127.0.0.1
+          - orderer.diplochain.local
+
+PeerOrgs:
+  - Name: DiploChainOrg
+    Domain: diplochain.local
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+      SANS:
+        - localhost
+        - 127.0.0.1
+    Users:
+      Count: 2  # Admin + blockchain-service user

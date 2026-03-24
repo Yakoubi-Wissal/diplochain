@@ -12,14 +12,14 @@ for name in list(sys.modules):
         del sys.modules[name]
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
 from app.main import app
 
 @pytest.mark.asyncio
 async def test_health_and_metrics():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/health")
         assert r.status_code == status.HTTP_200_OK
 

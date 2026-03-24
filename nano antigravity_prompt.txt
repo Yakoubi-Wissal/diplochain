@@ -1,0 +1,28 @@
+Scan the entire project, including:
+
+- Backend microservices (all /backend/app/v2/*)
+- Frontend audit-dashboard (React/Next.js)
+- Blockchain services (fabric-api-server, chaincode, etc.)
+
+Tasks:
+
+1. Automatically detect and fix all errors:
+   - Backend services, API endpoints, database connections.
+   - Frontend integration issues.
+   - Blockchain transactions and chaincode calls.
+2. Ensure the frontend audit-dashboard is fully dynamic:
+   - No hardcoded data.
+   - All microservices and blockchain data fully integrated.
+   - Live updates of users, transactions, and system status.
+3. Test all flows automatically:
+   - CRUD operations, authentication, blockchain transactions, frontend-backend interactions.
+4. Generate a comprehensive report:
+   - All emails and passwords used in the project.
+   - Paths of all services, APIs, and databases.
+   - All fixes applied and changes made.
+
+Constraints:
+
+- Do not stop on errors; continue until the entire project is fully functional.
+- Optimize token usage; perform everything in one run.
+- Ensure full dynamic integration so that the audit-dashboard reflects live data from backend and blockchain services.

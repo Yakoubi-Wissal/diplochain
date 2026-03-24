@@ -11,7 +11,7 @@ for name in list(sys.modules):
 
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 # Mock the DB init before importing the app
 with patch("core.database.init_db", new=AsyncMock()):
@@ -30,25 +30,25 @@ app.dependency_overrides[get_db] = mock_get_db
 
 @pytest.mark.asyncio
 async def test_health():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/health")
         assert r.status_code == 200
         assert r.json() == {"status": "ok"}
 
 @pytest.mark.asyncio
 async def test_admin_diplomas():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/api/admin/diplomas")
         assert r.status_code == 200
 
 @pytest.mark.asyncio
 async def test_admin_students():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/api/admin/students")
         assert r.status_code == 200
 
 @pytest.mark.asyncio
 async def test_admin_institutions():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/api/admin/institutions")
         assert r.status_code == 200

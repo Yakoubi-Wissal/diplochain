@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional
 import io
 from reportlab.pdfgen import canvas
 
@@ -23,22 +24,22 @@ router = APIRouter(prefix="", tags=["PDF"])
 class StudentData(BaseModel):
     nom: str
     prenom: str
-    date_naissance: str
+    date_naissance: Optional[str] = "N/A"      # ← optionnel
     numero_etudiant: str
 
 class DiplomaData(BaseModel):
     titre: str
     mention: str
     date_emission: str
-    annee_promotion: str
+    annee_promotion: Optional[str] = "N/A"     # ← optionnel
 
 class InstitutionData(BaseModel):
     nom: str
-    logo_url: str
+    logo_url: Optional[str] = ""               # ← optionnel
     responsable: str
 
 class GenerateRequest(BaseModel):
-    template_id: str
+    template_id: Optional[str] = "standard_v1" # ← optionnel
     student: StudentData
     diploma: DiplomaData
     institution: InstitutionData

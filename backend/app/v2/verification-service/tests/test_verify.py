@@ -2,14 +2,14 @@ import sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
 from app.main import app
 
 @pytest.mark.asyncio
 async def test_qr_and_history():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         qr = {"diplome_id": 1, "etudiant_id": "E1", "qr_code_path": "p.png", "identifiant_opaque": "abc", "url_verification": "http://x"}
         r = await client.post("/verify/qr", json=qr)
         assert r.status_code == status.HTTP_200_OK

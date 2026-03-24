@@ -1,0 +1,40 @@
+{
+  "project": "DiploChain V2",
+  "architecture_type": "Distributed / Microservices",
+  "components": [
+    {
+      "name": "Frontend Dashboard",
+      "technology": "React (Vite)",
+      "port": 3001,
+      "role": "Audit Console & UI"
+    },
+    {
+      "name": "Fabric API Server",
+      "technology": "Node.js (Express)",
+      "port": 4001,
+      "role": "Middleware / Blockchain Bridge"
+    },
+    {
+      "name": "Blockchain Network",
+      "technology": "Hyperledger Fabric v2.5",
+      "components": ["Orderer", "Peer0", "CA", "CouchDB"],
+      "consensus": "Raft"
+    },
+    {
+      "name": "Database",
+      "technology": "PostgreSQL 15",
+      "role": "Off-chain metadata & operations history"
+    },
+    {
+      "name": "Storage",
+      "technology": "IPFS",
+      "role": "Document storage (CID references on-chain)"
+    }
+  ],
+  "interactions": [
+    "Frontend -> API Server (REST / JWT)",
+    "API Server -> Fabric Peer (Docker Exec / CLI Invoke)",
+    "API Server -> PostgreSQL (SQL Query)",
+    "Fabric Peer -> Chaincode (GOLANG)"
+  ]
+}

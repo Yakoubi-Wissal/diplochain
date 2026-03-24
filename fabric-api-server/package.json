@@ -1,0 +1,19 @@
+{
+  "name": "fabric-api-server",
+  "version": "1.0.0",
+  "description": "Serveur Express — pont entre audit-dashboard et Hyperledger Fabric",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^4.22.1",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

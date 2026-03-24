@@ -1,5 +1,4 @@
 services:
-
   postgres:
     image: postgres:14.2
     container_name: diplochain_postgres
@@ -12,27 +11,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U diplochain_user -d diplochain_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - diplochain-network
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: diplochain_pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@diplochain.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-    ports:
-      - "5050:80"
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - diplochain-network
 
@@ -55,284 +39,374 @@ services:
     networks:
       - diplochain-network
 
-  backend:
-    build: ./backend
-    container_name: diplochain_backend
-    working_dir: /app
-    ports:
-      - "8000:8000"
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-      - SECRET_KEY=changeme
-      - ALLOWED_ORIGINS=http://localhost:3000
-      - FABRIC_STUB_MODE=true
-      - IPFS_HOST=ipfs-node
-      - IPFS_PORT=5001
-    volumes:
-      - ./backend:/app
-    networks:
-      - diplochain-network
-    depends_on:
-      - postgres
-      - ipfs-node
-      - fabric-gateway
-
+  # V2 Microservices
   api-gateway:
     build: ./backend/app/v2/api-gateway
-    container_name: diplochain_api_gateway
-    working_dir: /app
+    container_name: diplochain_v2_api_gateway
     ports:
-      - "8001:8000"
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/api-gateway/app:/app
+      - "8000:8000"
     networks:
       - diplochain-network
-    depends_on:
-      - user-service
-      - institution-service
-      - student-service
-      - diploma-service
-      - document-service
-      - blockchain-service
-      - storage-service
-      - verification-service
-      - analytics-service
-
-  retry-worker-service:
-    build: ./backend/app/v2/retry-worker-service
-    container_name: diplochain_v2_retry_worker
-    working_dir: /app
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
     volumes:
-      - ./backend/app/v2/retry-worker-service/app:/app
+      - ./backend/app/v2/api-gateway/app:/app
+    environment:
+      - JWT_SECRET_KEY=your-secret-key-change-in-production
+      - JWT_ALGORITHM=HS256
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:8000
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      user-service:
+        condition: service_healthy
+      institution-service:
+        condition: service_healthy
+      student-service:
+        condition: service_healthy
+      diploma-service:
+        condition: service_healthy
+      document-service:
+        condition: service_healthy
+      blockchain-service:
+        condition: service_healthy
+      storage-service:
+        condition: service_healthy
+      verification-service:
+        condition: service_healthy
+      analytics-service:
+        condition: service_healthy
+      admin-dashboard-service:
+        condition: service_healthy
+      entreprise-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+      pdf-generator-service:
+        condition: service_healthy
+      qr-validation-service:
+        condition: service_healthy
+
+  frontend:
+    build: ./audit-dashboard
+    container_name: diplochain_v2_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
     networks:
       - diplochain-network
 
   user-service:
     build: ./backend/app/v2/user-service
     container_name: diplochain_v2_user
-    working_dir: /app
-    ports:
-      - "8100:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/user-service/app:/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/user-service/app:/app
+      - ./backend/app/v2/user-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   institution-service:
     build: ./backend/app/v2/institution-service
     container_name: diplochain_v2_institution
-    working_dir: /app
-    ports:
-      - "8200:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/institution-service/app:/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/institution-service/app:/app
+      - ./backend/app/v2/institution-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   student-service:
     build: ./backend/app/v2/student-service
     container_name: diplochain_v2_student
-    working_dir: /app
-    ports:
-      - "8300:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/student-service/app:/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/student-service/app:/app
+      - ./backend/app/v2/student-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   diploma-service:
     build: ./backend/app/v2/diploma-service
     container_name: diplochain_v2_diploma
-    working_dir: /app
-    ports:
-      - "8400:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
+    networks:
+      - diplochain-network
     volumes:
       - ./backend/app/v2/diploma-service/app:/app
-    networks:
-      - diplochain-network
+      - ./backend/app/v2/diploma-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - postgres
-
-  document-service:
-    build: ./backend/app/v2/document-service
-    container_name: diplochain_v2_document
-    working_dir: /app
-    ports:
-      - "8500:8000"
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/document-service/app:/app
-    networks:
-      - diplochain-network
-    depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   blockchain-service:
     build: ./backend/app/v2/blockchain-service
     container_name: diplochain_v2_blockchain
-    working_dir: /app
-    ports:
-      - "8600:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
       - FABRIC_GATEWAY_HOST=fabric-gateway
       - FABRIC_GATEWAY_PORT=7051
-    volumes:
-      - ./backend/app/v2/blockchain-service/app:/app
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/blockchain-service/app:/app
+      - ./backend/app/v2/blockchain-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - postgres
-      - fabric-gateway
+      postgres:
+        condition: service_healthy
+      fabric-gateway:
+        condition: service_started
 
   storage-service:
     build: ./backend/app/v2/storage-service
     container_name: diplochain_v2_storage
-    working_dir: /app
-    ports:
-      - "8700:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
       - IPFS_HOST=ipfs-node
-      - IPFS_PORT=5001
-    volumes:
-      - ./backend/app/v2/storage-service/app:/app
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/storage-service/app:/app
+      - ./backend/app/v2/storage-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - postgres
-      - ipfs-node
+      postgres:
+        condition: service_healthy
+      ipfs-node:
+        condition: service_started
+
+  document-service:
+    build: ./backend/app/v2/document-service
+    container_name: diplochain_v2_document
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
+    networks:
+      - diplochain-network
+    volumes:
+      - ./backend/app/v2/document-service/app:/app
+      - ./backend/app/v2/document-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   verification-service:
     build: ./backend/app/v2/verification-service
     container_name: diplochain_v2_verification
-    working_dir: /app
-    ports:
-      - "8800:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/verification-service/app:/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/verification-service/app:/app
+      - ./backend/app/v2/verification-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   analytics-service:
     build: ./backend/app/v2/analytics-service
     container_name: diplochain_v2_analytics
-    working_dir: /app
-    ports:
-      - "8900:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
+    networks:
+      - diplochain-network
     volumes:
       - ./backend/app/v2/analytics-service/app:/app
-    networks:
-      - diplochain-network
+      - ./backend/app/v2/analytics-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     depends_on:
-      - postgres
-
-  pdf-generator-service:
-    build: ./backend/app/v2/pdf-generator-service
-    container_name: diplochain_v2_pdf_generator
-    working_dir: /app
-    ports:
-      - "8005:8000"
-    environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/pdf-generator-service/app:/app
-    networks:
-      - diplochain-network
+      postgres:
+        condition: service_healthy
 
   qr-validation-service:
     build: ./backend/app/v2/qr-validation-service
     container_name: diplochain_v2_qr_validation
-    working_dir: /app
-    ports:
-      - "8006:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/qr-validation-service/app:/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
+      - BLOCKCHAIN_URL=http://blockchain-service:8000
+      - IPFS_URL=http://ipfs-node:5001
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/qr-validation-service/app:/app
+      - ./backend/app/v2/qr-validation-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   admin-dashboard-service:
     build: ./backend/app/v2/admin-dashboard-service
     container_name: diplochain_v2_admin_dashboard
-    working_dir: /app
-    ports:
-      - "8007:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/admin-dashboard-service/app:/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/admin-dashboard-service/app:/app
+      - ./backend/app/v2/admin-dashboard-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   entreprise-service:
     build: ./backend/app/v2/entreprise-service
     container_name: diplochain_v2_entreprise
-    working_dir: /app
-    ports:
-      - "8008:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/entreprise-service/app:/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/entreprise-service/app:/app
+      - ./backend/app/v2/entreprise-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   notification-service:
     build: ./backend/app/v2/notification-service
     container_name: diplochain_v2_notification
-    working_dir: /app
-    ports:
-      - "8009:8000"
     environment:
-      - PYTHONPATH=/app
-      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres:5432/diplochain_db
-    volumes:
-      - ./backend/app/v2/notification-service/app:/app
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
     networks:
       - diplochain-network
+    volumes:
+      - ./backend/app/v2/notification-service/app:/app
+      - ./backend/app/v2/notification-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  pdf-generator-service:
+    build: ./backend/app/v2/pdf-generator-service
+    container_name: diplochain_v2_pdf_generator
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
+    networks:
+      - diplochain-network
+    volumes:
+      - ./backend/app/v2/pdf-generator-service/app:/app
+      - ./backend/app/v2/pdf-generator-service/tests:/app/tests
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  retry-worker-service:
+    build: ./backend/app/v2/retry-worker-service
+    container_name: diplochain_v2_retry_worker
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://diplochain_user:diplochain_pass@postgres/diplochain_db
+    ports:
+      - "8015:8000"
+    networks:
+      - diplochain-network
+    volumes:
+      - ./backend/app/v2/retry-worker-service/app:/app
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 networks:
   diplochain-network:

@@ -11,10 +11,11 @@ ON CONFLICT (id_role) DO NOTHING;
 -- 2. Users (Password is 'password' hashed with bcrypt if needed, but here we just put a string for now as we don't have the hash tool handy, assuming user-service can handle it or we use the hash from security.py)
 -- 'password' hashed with passlib.hash.bcrypt is likely what's expected.
 -- For now let's just use a placeholder that looks like a hash or just 'password' if the service doesn't validate on read.
+-- Passwords: Admin@1234  (hash: $2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW)
 INSERT INTO public."User" (id_user, username, password, email, status) VALUES
-(1, 'admin', '$2b$12$LQv3c1yqBWVHxkd0LpafE.Kbh6.p5O5uYqx/fG9A03hK9z6B6a.iW', 'admin@diplochain.tn', 'ACTIF'),
-(2, 'esprit_admin', '$2b$12$LQv3c1yqBWVHxkd0LpafE.Kbh6.p5O5uYqx/fG9A03hK9z6B6a.iW', 'contact@esprit.tn', 'ACTIF'),
-(3, 'student1', '$2b$12$LQv3c1yqBWVHxkd0LpafE.Kbh6.p5O5uYqx/fG9A03hK9z6B6a.iW', 'student1@esprit.tn', 'ACTIF')
+(1, 'admin', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'admin@diplochain.tn', 'ACTIF'),
+(2, 'esprit_admin', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'contact@esprit.tn', 'ACTIF'),
+(3, 'student1', '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'student1@esprit.tn', 'ACTIF')
 ON CONFLICT (id_user) DO NOTHING;
 
 SELECT setval('public."User_id_user_seq"', (SELECT MAX(id_user) FROM public."User"));

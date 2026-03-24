@@ -10,19 +10,19 @@ for name in list(sys.modules):
         del sys.modules[name]
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from app.main import app
 
 @pytest.mark.asyncio
 async def test_health():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/health")
         assert r.status_code == 200
         assert r.json() == {"status": "healthy"}
 
 @pytest.mark.asyncio
 async def test_generate_diploma():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         payload = {
             "template_id": "template_uuid_123",
             "student": {

@@ -5,6 +5,6 @@ pydantic
 pytest
 pytest-asyncio
 
-# Database
-pydantic-settings>=2.0.0
-asyncpg>=0.29.0
+# Auth
+PyJWT>=2.8.0
+python-multipart

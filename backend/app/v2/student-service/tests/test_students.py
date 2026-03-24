@@ -12,14 +12,14 @@ for name in list(sys.modules):
         del sys.modules[name]
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
 from app.main import app
 
 @pytest.mark.asyncio
 async def test_student_operations():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         payload = {"etudiant_id": "S123", "nom": "Test", "prenom": "User"}
         r = await client.post("/students/", json=payload)
         assert r.status_code == status.HTTP_201_CREATED

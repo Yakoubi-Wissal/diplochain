@@ -1,45 +1,34 @@
 #!/bin/bash
-# save as fix_all.sh
+# fix_all.sh
 
-echo "🔧 Correction de tous les problèmes..."
+cd fabric-network
+export PATH=$PWD/bin:$PATH
+export FABRIC_CFG_PATH=$PWD
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID=DiploChainOrgMSP
+export CORE_PEER_TLS_ROOTCERT_FILE="$PWD/crypto-config/peerOrganizations/diplochain.local/peers/peer0.diplochain.local/tls/ca.crt"
+export CORE_PEER_MSPCONFIGPATH="$PWD/crypto-config/peerOrganizations/diplochain.local/users/Admin@diplochain.local/msp"
+export CORE_PEER_ADDRESS=localhost:7051
+ORDERER_CA="$PWD/crypto-config/ordererOrganizations/orderer.diplochain.local/orderers/orderer.orderer.diplochain.local/tls/ca.crt"
 
-# 1. Correction du fichier init.sql
-echo "📁 Vérification de database/init.sql..."
-if [ -d "./database/init.sql" ]; then
-    echo "   ⚠️  C'est un dossier, correction..."
-    mv ./database/init.sql ./database/init.sql.bak.$(date +%s)
-    # Recréer avec votre contenu (vous devrez copier-coller le contenu)
-fi
+echo "Packaging chaincode v1.3..."
+peer lifecycle chaincode package ./channel-artifacts/diplochain_1.3.tar.gz \
+  --path ./chaincode/diplochain --lang golang --label diplochain_1.3
 
-# 2. Ajout de pydantic-settings aux requirements
-echo "📝 Mise à jour des requirements.txt..."
-cd backend/app/v2
-for service in */; do
-    req_file="${service}requirements.txt"
-    if [ -f "$req_file" ]; then
-        if ! grep -q "pydantic-settings" "$req_file"; then
-            echo "pydantic-settings>=2.0.0" >> "$req_file"
-            echo "   ✅ pydantic-settings ajouté à $service"
-        fi
-    fi
-done
-cd ../../..
+echo "Installing chaincode v1.3..."
+peer lifecycle chaincode install ./channel-artifacts/diplochain_1.3.tar.gz
 
-# 3. Vérification des Dockerfiles
-echo "🐳 Vérification des Dockerfiles..."
-cd backend/app/v2
-for service in */; do
-    dockerfile="${service}Dockerfile"
-    if [ -f "$dockerfile" ]; then
-        # Vérifier que le CMD est correct
-        if grep -q "uvicorn main:app" "$dockerfile"; then
-            echo "   ✅ $service Dockerfile OK"
-        else
-            echo "   ⚠️  $service Dockerfile pourrait nécessiter une vérification"
-        fi
-    fi
-done
-cd ../../..
+echo "Getting Package ID..."
+PKG_ID=$(peer lifecycle chaincode queryinstalled | grep "diplochain_1.3" | awk -F'[, ]+' '{print $3}')
+echo "PKG_ID=$PKG_ID"
 
-echo "✅ Corrections terminées!"
-echo "🚀 Lancez: docker compose down && docker compose build --no-cache && docker compose up -d"
+echo "Approving for channel-1..."
+peer lifecycle chaincode approveformyorg -o localhost:7050 --tls --cafile "$ORDERER_CA" \
+  --channelID channel-1 --name diplochain --version 1.3 --package-id "$PKG_ID" --sequence 4
+
+echo "Committing to channel-1..."
+peer lifecycle chaincode commit -o localhost:7050 --tls --cafile "$ORDERER_CA" \
+  --channelID channel-1 --name diplochain --version 1.3 --sequence 4 \
+  --peerAddresses localhost:7051 --tlsRootCertFiles "$CORE_PEER_TLS_ROOTCERT_FILE"
+
+echo "Done!"

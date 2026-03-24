@@ -1,6 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, Response
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
+import jwt
+import os
+from typing import Optional
 
 app = FastAPI(
     title="DiploChain API Gateway",
@@ -8,13 +12,37 @@ app = FastAPI(
     description="Routes frontend requests to microservices",
 )
 
+# CORS: Restrict to known origins (e.g., localhost:3000 for React)
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:3001,http://localhost:8000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+
+PUBLIC_PATHS = [
+    "/api/users/auth/login",
+    "/api/user-service/auth/login",
+    "/api/users/", # Permit registration
+    "/api/user-service/",
+    "/discovery",
+    "/health",
+    "/api/health",
+    "health" # Catch all for any path containing /health
+]
+
+def verify_token(token: str) -> bool:
+    try:
+        jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return True
+    except Exception:
+        return False
 
 SERVICE_MAP = {
     "users": "http://user-service:8000",
@@ -49,19 +77,28 @@ SERVICE_MAP = {
 
 @app.api_route("/api/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def proxy(service: str, path: str, request: Request):
+    # 1. Check if path is public
+    full_path = f"/api/{service}/{path}"
+    match_path = full_path.rstrip("/")
+    is_public = any(match_path.startswith(p.rstrip("/")) for p in PUBLIC_PATHS)
+    
+    if not is_public:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Missing or invalid token")
+        
+        token = auth_header.split(" ")[1]
+        if not verify_token(token):
+            raise HTTPException(status_code=401, detail="Invalid token")
+
     base = SERVICE_MAP.get(service)
     if not base:
         return {"error": "unknown service"}
 
-    # Ensure we don't end up with double slashes but preserve the trailing slash intent
     url_path = path if not path.startswith("/") else path[1:]
-    
-    # Standard proxy: /api/service/path -> base/service/path
-    # This aligns with microservices having prefixes like /users, /auth, etc.
     url = f"{base}/{url_path}"
     
     async with httpx.AsyncClient() as client:
-        print(f"DEBUG: Proxying {request.method} {request.url} -> {url}")
         resp = await client.request(
             request.method,
             url,
@@ -70,17 +107,10 @@ async def proxy(service: str, path: str, request: Request):
             params=request.query_params,
         )
         
-        # Determine how to return the response based on Content-Type
         content_type = resp.headers.get("content-type", "")
         headers = {k: v for k, v in resp.headers.items() if k.lower() not in ["content-length", "content-encoding"]}
         
-        if resp.status_code >= 400:
-            print(f"DEBUG: Backend error {resp.status_code}: {resp.text}")
-        
-        print(f"DEBUG: Backend returned {resp.status_code}")
-        
         if "application/json" in content_type:
-            from fastapi.responses import JSONResponse
             try:
                 json_content = resp.json()
                 return JSONResponse(
@@ -89,10 +119,8 @@ async def proxy(service: str, path: str, request: Request):
                     headers=headers
                 )
             except Exception:
-                # Fallback to plain response if json parsing fails
                 pass
         
-        from fastapi import Response
         return Response(
             content=resp.content,
             status_code=resp.status_code,
@@ -101,20 +129,21 @@ async def proxy(service: str, path: str, request: Request):
 
 @app.get("/discovery")
 async def discovery():
-    """Probes all microservices and returns their status"""
-    status = {}
-    async with httpx.AsyncClient(timeout=2) as client:
-        for service, url in SERVICE_MAP.items():
-            try:
-                # Try health endpoint first
-                r = await client.get(f"{url}/health")
-                if r.status_code == 200:
-                    status[service] = {"status": "up", "health": r.json()}
-                else:
-                    status[service] = {"status": "reachable", "code": r.status_code}
-            except Exception as e:
-                status[service] = {"status": "down", "error": str(e)}
-    return status
+    import asyncio
+    async def get_service_status(client, service, url):
+        try:
+            r = await client.get(f"{url}/health", timeout=1.0)
+            return service, {"status": "up", "health": r.json() if r.status_code == 200 else r.status_code}
+        except Exception as e:
+            return service, {"status": "down", "error": str(e)}
+
+    results = {}
+    async with httpx.AsyncClient() as client:
+        tasks = [get_service_status(client, s, u) for s, u in SERVICE_MAP.items()]
+        completed = await asyncio.gather(*tasks)
+        for service, status in completed:
+            results[service] = status
+    return results
 
 @app.get("/health")
 async def health():

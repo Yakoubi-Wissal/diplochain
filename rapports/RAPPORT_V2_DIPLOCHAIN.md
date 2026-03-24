@@ -1658,3 +1658,29 @@ async def create_diploma(...):
 | retry-worker | ➖ | ➖ | 2 critiques |
 
 **Légende**: ✅ OK | ⚠️ Partiellement fonctionnel | ❌ Erreur | ➖ Non testable
+
+---
+
+## 🤖 COMPTE-RENDU DU SCAN AUTOMATISÉ (Script Auto-Fix)
+
+> **Généré le** : 2026-03-23
+> **Fichier Source** : `report_full_project.json`
+
+### 1. Synthèse des tests d'intégration (pytest)
+Un scan profond a été effectué via boucle automatisée sur l'ensemble des 14 microservices V2.
+- **Résultat global** : `Failing` pour la majorité des services.
+- **Cause principale identifiée** : Une erreur critique de type `TypeError: AsyncClient.__init__() got an unexpected keyword argument 'app'` dans toutes les suites de test, causée par une mise à jour de la bibliothèque `httpx` (l'argument `app` doit désormais être enrobé dans `transport=ASGITransport(app=app)`).
+- **Conséquence** : Les suites de tests `test_health.py` et les flux d'intégration finissent en erreur `500` systématique lors des validations CI/CD internes.
+
+### 2. Audit des Identifiants & Secrets (Hardcodés)
+Plus de **100+ instances de secrets et identifiants** ont été détectées et documentées lors du scan complet de l'espace de travail. Voici les types de fuites principales :
+- **Variables d'environnement (.env)** : Mot de passe `diplochain_pass` trouvé en clair dans les 14 microservices.
+- **Scripts de configuration Fabric** : Mots de passe (`org1adminpw`, `adminpw`, `diplochain_couch_2025`) trouvés dans la DB Couch et l'infrastructure Fabric (`fabric-network/fabric-samples/`).
+- **Scripts SQL (seed_data.sql)** : Présence d'emails de tests et de comptes administrateurs (`admin@diplochain.tn`, `contact@esprit.tn`).
+- **Code source Python (tests)** : Mots de passe en clair (`secretpassword`, `securepassword123`) dans les fichiers de test d'intégration de connexion (ex: `test_security.py`).
+
+### 3. Conclusion & Auto-Fix Stratégie
+L'Audit Dashboard (`audit-dashboard`) est bien connecté et certifié **"Dynamic"** sans données mockées, mais l'intégration backend finale nécessite ces correctifs :
+1. **Refactoring global de HTTPX** : Remplacer `AsyncClient(app=app)` par `AsyncClient(transport=ASGITransport(app=app))` dans plus de 20 fichiers de test.
+2. **Standardiser `conftest.py`** : Rajouter des fichiers `__init__.py` dans les dossiers `tests/` pour éviter les `ImportPathMismatchError`.
+3. **Sécuriser les secrets** : Supprimer les mots de passe de production des fichiers de démonstration et `.env` versionnés.

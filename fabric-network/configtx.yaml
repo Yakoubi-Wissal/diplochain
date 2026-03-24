@@ -1,0 +1,161 @@
+# =============================================================================
+# DiploChain — configtx.yaml
+# Fabric 2.5 | Orderer Raft (single node PFE) + DiploChainOrg
+# Usage : configtxgen lit ce fichier pour genesis block + channel config
+# =============================================================================
+
+Organizations:
+
+  - &DiploChainOrderer
+    Name: DiploChainOrdererMSP
+    ID: DiploChainOrdererMSP
+    MSPDir: crypto-config/ordererOrganizations/orderer.diplochain.local/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('DiploChainOrdererMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('DiploChainOrdererMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('DiploChainOrdererMSP.admin')"
+
+  - &DiploChainOrg
+    Name: DiploChainOrgMSP
+    ID: DiploChainOrgMSP
+    MSPDir: crypto-config/peerOrganizations/diplochain.local/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('DiploChainOrgMSP.admin', 'DiploChainOrgMSP.peer', 'DiploChainOrgMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('DiploChainOrgMSP.admin', 'DiploChainOrgMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('DiploChainOrgMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('DiploChainOrgMSP.peer')"
+    AnchorPeers:
+      - Host: peer0.diplochain.local
+        Port: 7051
+
+# =============================================================================
+# Capabilities — Fabric 2.5
+# =============================================================================
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_5: true
+
+# =============================================================================
+# Application defaults
+# =============================================================================
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+# =============================================================================
+# Orderer — Raft single node (scalable vers multi-node en prod)
+# =============================================================================
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  Addresses:
+    - orderer.diplochain.local:7050
+  EtcdRaft:
+    Consenters:
+      - Host: orderer.diplochain.local
+        Port: 7050
+        ClientTLSCert: crypto-config/ordererOrganizations/orderer.diplochain.local/orderers/orderer.orderer.diplochain.local/tls/server.crt
+        ServerTLSCert: crypto-config/ordererOrganizations/orderer.diplochain.local/orderers/orderer.orderer.diplochain.local/tls/server.crt
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *OrdererCapabilities
+
+# =============================================================================
+# Channel defaults
+# =============================================================================
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+# =============================================================================
+# Profiles
+# =============================================================================
+Profiles:
+
+  # Genesis block du système orderer
+  DiploChainGenesis:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *DiploChainOrderer
+    Consortiums:
+      DiploChainConsortium:
+        Organizations:
+          - *DiploChainOrg
+
+  # Template de canal institution (utilisé par create-channel.sh)
+  # channel_id = channel_<institution_id> (ex: channel_1, channel_42)
+  InstitutionChannel:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *DiploChainOrderer
+    Consortium: DiploChainConsortium
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *DiploChainOrg

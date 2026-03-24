@@ -1,62 +1,96 @@
-# DiploChain Microservices Architecture
+# 🎓 DiploChain V2
 
-This repository has been refactored into a true microservices ecosystem following Domain-Driven Design and the `Database per Service` pattern.
+> **Secure, Decentralized, and Transparent Academic Diploma Management System.**
 
-## Services
-Each microservice lives in its own folder and owns its own database schema:
+[![Hyperledger Fabric](https://img.shields.io/badge/Blockchain-Hyperledger%20Fabric%20v2.5-blue.svg)](https://www.hyperledger.org/use/fabric)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB.svg)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js%20%2F%20Express-339933.svg)](https://nodejs.org/)
 
-1. **user-service** – user accounts, roles, authentication
-2. **institution-service** – institutions and their admins/settings
-3. **student-service** – student profiles and identifiers
-4. **diploma-service** – diploma lifecycle operations
-5. **document-service** – PDF storage metadata
-6. **blockchain-service** – Hyperledger Fabric interactions
-7. **storage-service** – IPFS integration, CID management
-8. **verification-service** – diploma verification, logs
-9. **analytics-service** – dashboard metrics and statistics
-10. **api-gateway** – single entry point forwarding `/api/*` to appropriate service
-
-Additional components include the legacy `backend` monolith (for compatibility), `enterprise-service` and frontends.
-
-## Databases
-`database/init.sql` now creates separate databases for each service (e.g. `user_service_db`, `diploma_service_db`, etc.) during initialization.
-
-Each service uses `asyncpg`/SQLAlchemy configured via its own `.env`.
-
-## Docker Compose
-`docker-compose.yml` orchestrates all services plus supporting infrastructure:
-
-- Postgres + PgAdmin
-- IPFS node
-- Fabric gateway (stubbed)
-- API gateway on port 8001
-- Frontends on ports 3000/3001
-
-### Running the stack
-```bash
-docker-compose build
-docker-compose up
-```
-
-The React applications proxy `/api` requests to the gateway which routes to microservices.
-
-## Development
-Each service has its own FastAPI app, Dockerfile, requirements, and database initialization.  To work on a specific service, enter its directory and run:
-
-```bash
-uvicorn app.main:app --reload --port 8000
-``` 
-
-Use the Vite servers in the frontend folders; they forward API calls to the gateway.
-
-## Extensibility
-This architecture allows independent deployment, scaling, and versioning of each business capability. Communication between services occurs over well-defined REST endpoints – no direct database access.
-
-## Next Steps
-- Implement business logic inside each service (validation, authorization) and add comprehensive tests.
-- Remove legacy monolith or keep as aggregator during migration.
-- Add authentication / Azure AD integration in user-service.
-- Add rate limiting, logging, tracing across services.
+DiploChain is a production-ready solution for academic institutions to issue, verify, and revoke diplomas on a private blockchain. It eliminates diploma fraud and simplifies administrative audits.
 
 ---
-The repository structure now mirrors a production-grade microservices platform.
+
+## ✨ Key Features
+
+- ⛓️ **Blockchain Integrity**: Immutable records using Hyperledger Fabric v2.5.
+- 📊 **Dynamic Audit Dashboard**: Real-time monitoring of network health and transactions.
+- 📜 **IPFS Integration**: Decentralized storage for diploma documents (PDFs).
+- 🔍 **Instant Verification**: Public or private endpoints to verify hashes instantly.
+- 🛡️ **Revocation Management**: Secure revocation flow with on-chain motif logging.
+- 📑 **Automated Reporting**: Export project status and activities in JSON or PDF.
+
+---
+
+## 🏗️ Architecture
+
+```text
+      [ Admin / User ]
+             |
+             v
++-----------------------------+
+|    React Dashboard (3001)   |  <-- Premium UI with Glassmorphism
++--------------+--------------+
+               |
+               v (REST API + JWT)
++--------------+--------------+      +--------------------------+
+|   Fabric API Server (4001)  | <--> |  PostgreSQL (History DB) |
++--------------+--------------+      +--------------------------+
+               |
+               v (Docker Exec / Fabric CLI)
++--------------+--------------+
+|  Hyperledger Fabric Network |  <-- Private Distributed Ledger
+| (Orderer, Peer, CA, CouchDB)|
++-----------------------------+
+```
+
+For more detailed technical info, see:
+- 🇫🇷 [Documentation Complète (FR)](./DOCUMENTATION_FR.md)
+- 🇬🇧 [Full Technical Documentation (EN)](./DOCUMENTATION_EN.md)
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+- Docker & Docker Compose
+- Node.js (v18+)
+- Go (v1.21+)
+
+### 2. Launch Environment
+```bash
+# Clone the project
+git clone https://github.com/your-repo/diplochain.git
+cd diplochain
+
+# Start the full stack (Infra + Network)
+./run_diplochain.sh
+
+# Start the API Server
+cd fabric-api-server && npm install && npm start
+
+# Start the Dashboard
+# In a new terminal
+cd audit-dashboard && npm install && npm run dev
+```
+
+---
+
+## 🛠️ Technology Stack
+
+- **Blockchain**: Hyperledger Fabric (Go Chaincode)
+- **Backend**: Node.js, Express, PostgreSQL
+- **Frontend**: React, Vite, Tailwind-ready Vanilla CSS, Lucide Icons
+- **Infrastructure**: Docker, Shell Scripting
+
+---
+
+## 🤝 Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## ⚖️ License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+*Developed with ❤️ for DiploChain Project.*

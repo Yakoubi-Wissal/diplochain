@@ -1,0 +1,48 @@
+{
+  "base_url": "http://localhost:4001",
+  "endpoints": [
+    {
+      "path": "/api/fabric/stats",
+      "method": "GET",
+      "description": "Returns real-time blockchain statistics (Total TX, Diplomas, etc.)"
+    },
+    {
+      "path": "/api/fabric/network/status",
+      "method": "GET",
+      "description": "Returns health status of Fabric containers and nodes"
+    },
+    {
+      "path": "/api/fabric/channels",
+      "method": "GET",
+      "description": "Lists all active Fabric channels"
+    },
+    {
+      "path": "/api/fabric/transactions",
+      "method": "GET",
+      "description": "Returns a list of the most recent blockchain transactions"
+    },
+    {
+      "path": "/api/fabric/chaincode/invoke",
+      "method": "POST",
+      "description": "Executes a chaincode transaction",
+      "body_params": ["channel", "fn", "args", "diplomeId", "hash"]
+    },
+    {
+      "path": "/api/fabric/report-full-project",
+      "method": "GET",
+      "description": "Generates a comprehensive JSON audit report for the entire project"
+    },
+    {
+      "path": "/api/fabric/reports/:type",
+      "method": "GET",
+      "description": "Generates specialized reports (activity, diplomes, security)",
+      "query_params": ["format=json|pdf"]
+    }
+  ],
+  "microservices_proxied_via_discovery": [
+    "/api/students/",
+    "/api/institutions/",
+    "/api/users/auth/login",
+    "/discovery"
+  ]
+}

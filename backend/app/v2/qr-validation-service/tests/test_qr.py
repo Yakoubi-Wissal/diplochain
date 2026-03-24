@@ -12,12 +12,12 @@ for name in list(sys.modules):
 import pytest
 import hashlib
 from unittest.mock import AsyncMock, MagicMock, patch
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from app.main import app
 
 @pytest.mark.asyncio
 async def test_health():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/health")
         assert r.status_code == 200
         assert r.json() == {"status": "ok"}
@@ -48,7 +48,7 @@ async def test_qr_verify_valid_diploma():
     mock_http_client.get = AsyncMock(side_effect=[mock_bc_response, mock_ipfs_response])
 
     with patch("httpx.AsyncClient", return_value=mock_http_client):
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             r = await client.get("/verify/opaque_diploma_001")
             assert r.status_code == 200
             data = r.json()
@@ -75,7 +75,7 @@ async def test_qr_verify_invalid_diploma():
     mock_http_client.get = AsyncMock(side_effect=[mock_bc_response, mock_ipfs_response])
 
     with patch("httpx.AsyncClient", return_value=mock_http_client):
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             r = await client.get("/verify/opaque_tampered_001")
             assert r.status_code == 200
             data = r.json()
