@@ -12,7 +12,8 @@ logger = logging.getLogger("security-scan-service")
 SERVICES = {
     "api-gateway": "http://api-gateway:8000",
     "user-service": "http://user-service:8000",
-    "blockchain-service": "http://blockchain-service:8000"
+    "blockchain-service": "http://blockchain-service:8000",
+    "analytics-service": "http://analytics-service:8000"
 }
 
 async def scan_owasp_top_10():
