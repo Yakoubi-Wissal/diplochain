@@ -53,7 +53,7 @@ DiploChain is a decentralized platform for issuing, verifying, and revoking acad
 ### Setup Steps
 1.  **Clone the repository**:
     ```bash
-    git clone <repository_url>
+    git clone https://github.com/Yakoubi-Wissal/diplochain.git
     cd diplochain
     ```
 2.  **Start the Infrastructure**:

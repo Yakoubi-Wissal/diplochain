@@ -36,7 +36,7 @@ fi
 # Vérification des outils requis
 check_tools() {
   log_info "Vérification des outils requis..."
-  for tool in cryptogen configtxgen docker docker-compose; do
+  for tool in cryptogen configtxgen docker; do
     if ! command -v "$tool" &>/dev/null; then
       log_error "$tool introuvable. Installez les binaires Fabric 2.5 :\n  curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.5.9 1.5.12"
     fi
@@ -47,7 +47,7 @@ check_tools() {
 # Nettoyage de l'état précédent
 cleanup() {
   log_warn "Nettoyage des artefacts précédents..."
-  docker-compose -f docker-compose.fabric.yml down --volumes --remove-orphans 2>/dev/null || true
+  docker compose -f docker-compose.fabric.yml down --volumes --remove-orphans 2>/dev/null || true
   rm -rf ./crypto-config ./channel-artifacts
   mkdir -p ./channel-artifacts
   log_ok "Nettoyage terminé"
@@ -76,7 +76,7 @@ generate_genesis() {
 # Démarrage des conteneurs Docker
 start_network() {
   log_info "Démarrage des conteneurs Fabric..."
-  docker-compose -f docker-compose.fabric.yml up -d
+  docker compose -f docker-compose.fabric.yml up -d
 
   log_info "Attente de la disponibilité des services (15s)..."
   sleep 15

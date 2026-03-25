@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light" style=""><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiploChain — Rapport Technique Final PFE 2024-2025</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <style>
+      /* Document Layout */
+      body {
+        max-width: 210mm; /* A4 width */
+        margin: 0 auto;
+        padding: 20mm;
+        font-family: 'Calibri', 'Arial', sans-serif; /* Professional sans-serif */
+        line-height: 1.5;
+        color: #333;
+        background-color: white;
+      }
+
+      /* Header Styling */
+      header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+        border-bottom: 3px solid #002d62; /* Dark Navy Blue */
+      }
+
+      h1.title {
+        font-size: 28pt;
+        font-weight: bold;
+        color: #002d62;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      h2.subtitle {
+        font-size: 16pt;
+        color: #555;
+        margin-bottom: 15px;
+        font-weight: normal;
+      }
+
+      .team-info {
+        font-size: 12pt;
+        font-weight: bold;
+        color: #002d62;
+        margin-bottom: 25px;
+      }
+
+      /* Stats Bar */
+      .stats-bar {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        font-size: 10pt;
+        font-weight: bold;
+      }
+
+      .stat-badge {
+        background-color: #002d62;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        text-transform: uppercase;
+      }
+
+      /* Table of Contents */
+      .toc {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 20px;
+        margin-bottom: 40px;
+        border-left: 5px solid #002d62;
+      }
+
+      .toc h3 {
+        margin-top: 0;
+        color: #002d62;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+      }
+
+      .toc ul {
+        list-style-type: none;
+        padding-left: 0;
+        columns: 2; /* Two columns for TOC */
+      }
+
+      .toc li {
+        margin-bottom: 5px;
+      }
+
+      .toc a {
+        text-decoration: none;
+        color: #333;
+      }
+
+      .toc a:hover {
+        text-decoration: underline;
+        color: #0056b3;
+      }
+
+      /* Section Styling */
+      section {
+        margin-bottom: 40px;
+      }
+
+      h2.section-title {
+        font-size: 18pt;
+        color: #002d62;
+        border-left: 8px solid #002d62;
+        padding-left: 15px;
+        margin-top: 40px;
+        margin-bottom: 20px;
+        background-color: #f0f4f8; /* Very light blue bg for header */
+        padding-top: 5px;
+        padding-bottom: 5px;
+      }
+
+      h3 {
+        font-size: 14pt;
+        color: #004080;
+        margin-top: 25px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+      }
+
+      h4 {
+        font-size: 12pt;
+        font-weight: bold;
+        margin-top: 15px;
+        margin-bottom: 10px;
+        color: #444;
+      }
+
+      p {
+        margin-bottom: 15px;
+        text-align: justify;
+      }
+
+      ul,
+      ol {
+        margin-bottom: 15px;
+        padding-left: 25px;
+      }
+
+      li {
+        margin-bottom: 5px;
+      }
+
+      /* Tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 25px;
+        font-size: 10pt;
+        border: 1px solid #ccc;
+      }
+
+      th {
+        background-color: #002d62;
+        color: white;
+        text-align: left;
+        padding: 10px;
+        font-weight: bold;
+        border: 1px solid #002d62;
+      }
+
+      td {
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        vertical-align: top;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f2f6fa;
+      }
+
+      /* Code Blocks */
+      pre {
+        background-color: #2d2d2d;
+        color: #f8f8f2;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 9pt;
+        border-left: 5px solid #007acc; /* VS Code Blue */
+        margin-bottom: 20px;
+      }
+
+      code {
+        font-family: 'Consolas', 'Monaco', monospace;
+        /* background-color: #eee;
+        padding: 2px 4px;
+        border-radius: 3px; */
+      }
+
+      /* Info Boxes */
+      .info-box {
+        background-color: #e7f3fe;
+        border-left: 5px solid #2196f3;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .warning-box {
+        background-color: #fff3cd;
+        border-left: 5px solid #ffc107;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      /* Priority Indicators */
+      .priority-critique {
+        color: #dc3545;
+        font-weight: bold;
+      } /* Red */
+      .priority-haute {
+        color: #fd7e14;
+        font-weight: bold;
+      } /* Orange */
+      .priority-moyenne {
+        color: #0d6efd;
+        font-weight: bold;
+      } /* Blue */
+      .priority-basse {
+        color: #198754;
+        font-weight: bold;
+      } /* Green */
+
+      /* Footer */
+      footer {
+        margin-top: 60px;
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
+        text-align: center;
+        font-size: 9pt;
+        color: #666;
+      }
+
+      /* Diagram ASCII Style */
+      .diagram {
+        font-family: 'Courier New', Courier, monospace;
+        white-space: pre;
+        background-color: #f9f9f9;
+        border: 1px dashed #999;
+        padding: 15px;
+        overflow-x: auto;
+        font-size: 9pt;
+        line-height: 1.2;
+        color: #333;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body style="">
+    <header>
+      <h1 class="title">DiploChain</h1>
+      <h2 class="subtitle">
+        Rapport Technique Final PFE 2024-2025<br>Plateforme de Diplômes Numériques Sécurisés par Blockchain
+      </h2>
+      <div class="team-info">Équipe DiploChain — PFE 2024-2025 — Mars 2026</div>
+
+      <div class="stats-bar">
+        <span class="stat-badge">16 MICROSERVICES</span>
+        <span class="stat-badge">30 TABLES BDD</span>
+        <span class="stat-badge">PostgreSQL 14.2</span>
+        <span class="stat-badge">Fabric 2.5.9</span>
+        <span class="stat-badge">IPFS</span>
+        <span class="stat-badge">Docker</span>
+      </div>
+    </header>
+
+    <div class="toc">
+      <h3>Table des Matières</h3>
+      <ul>
+        <li><a href="#section1">1. Introduction et Contexte du Projet</a></li>
+        <li><a href="#section2">2. Objectifs et Enjeux</a></li>
+        <li><a href="#section3">3. Stack Technologique</a></li>
+        <li><a href="#section4">4. Architecture Technique Détaillée</a></li>
+        <li><a href="#section5">5. Base de Données diplochain_db</a></li>
+        <li><a href="#section6">6. Les 16 Microservices</a></li>
+        <li><a href="#section7">7. Pipeline d'Émission de Diplôme</a></li>
+        <li><a href="#section8">8. Retry Worker Service</a></li>
+        <li><a href="#section9">9. Flux de Vérification</a></li>
+        <li><a href="#section10">10. Dashboard Super Admin &amp; Analytics</a></li>
+        <li><a href="#section11">11. Architecture Sécurité</a></li>
+        <li><a href="#section12">12. Hyperledger Fabric — Guide Complet</a></li>
+        <li><a href="#section13">13. Architecture Docker</a></li>
+        <li><a href="#section14">14. Backlog Agile Scrum</a></li>
+        <li><a href="#section15">15. Limitations et Perspectives</a></li>
+        <li><a href="#section16">16. Conclusion</a></li>
+      </ul>
+    </div>
+
+    <section id="section1">
+      <h2 class="section-title">1. Introduction et Contexte du Projet</h2>
+      <p>
+        DiploChain est une plateforme de diplômes numériques sécurisés par blockchain. Elle permet aux institutions
+        académiques d'émettre des diplômes numériques ancrés dans Hyperledger Fabric 2.5, stockés sur IPFS, et
+        vérifiables par les entreprises sans intermédiaire ni tiers de confiance.
+      </p>
+
+      <p>
+        Le projet répond à un problème critique : la fraude aux diplômes académiques, qui touche un nombre croissant
+        d'institutions et d'employeurs. DiploChain propose une solution technique robuste basée sur trois piliers :
+      </p>
+      <ul>
+        <li><strong>Hyperledger Fabric 2.5</strong> : ancrage immuable on-chain</li>
+        <li><strong>IPFS</strong> : stockage décentralisé des PDFs de diplômes</li>
+        <li><strong>Architecture 15 microservices FastAPI</strong> : coordonnée par un API Gateway</li>
+      </ul>
+
+      <p>
+        Architecture principale : 1 base PostgreSQL 14.2 centralisée (diplochain_db) partagée par 15 microservices
+        développés + pdf-generator-service (service existant consommé directement). Le fichier init.sql (pgAdmin 4 ERD)
+        définit 30 tables avec le pattern Base + Extension _ext.
+      </p>
+
+      <div class="info-box">
+        <strong>Corrections majeures vs rapports précédents :</strong>
+        <ul>
+          <li>PostgreSQL 14.2 (pas 16.11)</li>
+          <li>30 tables (pas 12)</li>
+          <li>PKs serial INTEGER (pas UUID généralisé)</li>
+          <li>Pattern _ext (User + user_ext, institution + institution_blockchain_ext...)</li>
+          <li>15 microservices développés + pdf-generator-service (existant)</li>
+          <li>channel-id avec tiret (convention Fabric 2.5)</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="section2">
+      <h2 class="section-title">2. Objectifs et Enjeux</h2>
+      <h3>Objectifs principaux</h3>
+      <ul>
+        <li>Éliminer la fraude aux diplômes grâce à une double ancre cryptographique (SHA-256 + CID IPFS)</li>
+        <li>Fournir une vérification instantanée sans intermédiaire via QR code et Hyperledger Fabric</li>
+        <li>Gérer le cycle de vie complet des diplômes (émission, révocation, modification)</li>
+        <li>Assurer la conformité RGPD via des canaux Fabric isolés par institution</li>
+        <li>Offrir un dashboard d'administration en temps réel</li>
+      </ul>
+
+      <h3>Enjeux techniques</h3>
+      <ul>
+        <li><strong>Scalabilité :</strong> architecture microservices permettant une montée en charge indépendante</li>
+        <li><strong>Résilience :</strong> Retry Worker pour les diplômes en échec blockchain</li>
+        <li><strong>Sécurité :</strong> RBAC, JWT RS256, Azure AD, TLS 1.3</li>
+        <li><strong>Migration future :</strong> Database per Service (9 bases déjà créées dans init.sql)</li>
+      </ul>
+    </section>
+
+    <section id="section3">
+      <h2 class="section-title">3. Stack Technologique</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 20%">Couche</th>
+            <th style="width: 25%">Technologie</th>
+            <th>Composants / Rôle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Frontend</td>
+            <td>React.js</td>
+            <td>Interface multi-rôle : Super Admin, Admin Institution, Étudiant, Entreprise</td>
+          </tr>
+          <tr>
+            <td>API Gateway</td>
+            <td>Nginx / FastAPI (port 8000)</td>
+            <td>Point d'entrée unique — auth JWT, routing vers 16 services, CORS, rate limiting</td>
+          </tr>
+          <tr>
+            <td>Backend</td>
+            <td>FastAPI (Python)</td>
+            <td>15 microservices développés + pdf-generator-service (service existant)</td>
+          </tr>
+          <tr>
+            <td>Base de données</td>
+            <td>PostgreSQL 14.2</td>
+            <td>diplochain_db — 30 tables — pattern _ext — 5 ENUMs</td>
+          </tr>
+          <tr>
+            <td>ORM</td>
+            <td>SQLAlchemy + Alembic</td>
+            <td>ORM Python — migrations de schéma par service</td>
+          </tr>
+          <tr>
+            <td>Blockchain</td>
+            <td>Hyperledger Fabric 2.5.9</td>
+            <td>1 canal par institution — chaincode diplochain — ancrage TX_ID</td>
+          </tr>
+          <tr>
+            <td>Stockage PDF</td>
+            <td>IPFS</td>
+            <td>CID stocké dans diplome_blockchain_ext.ipfs_cid</td>
+          </tr>
+          <tr>
+            <td>Génération PDF</td>
+            <td>JasperReports (JRXML)</td>
+            <td>Templates dans template_departement — paths .jrxml et .jasper</td>
+          </tr>
+          <tr>
+            <td>Auth entreprise</td>
+            <td>Microsoft Azure AD / Entra ID</td>
+            <td>JWT RS256 — sessions dans entreprise_auth_sessions</td>
+          </tr>
+          <tr>
+            <td>Auth interne</td>
+            <td>JWT HS256/RS256</td>
+            <td>Table User + user_ext — statut_user_diplochain ENUM</td>
+          </tr>
+          <tr>
+            <td>Conteneurisation</td>
+            <td>Docker + Docker Compose</td>
+            <td>1 Dockerfile par microservice — réseau Docker interne diplochain-net</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="section4">
+      <h2 class="section-title">4. Architecture Technique Détaillée</h2>
+
+      <div class="diagram">
+        [ Admin / Étudiant / Entreprise ] | v (HTTPS/JWT) +--------------------------------+ | React Dashboard
+        (Frontend) | +---------------+----------------+ | v (REST API + JWT RS256) +---------------+----------------+
+        +---------------------------+ | API Gateway — FastAPI (8000) | &lt;--&gt; | PostgreSQL 14.2 |
+        +---------------+----------------+ | diplochain_db — 30 tables | | +---------------------------+
+        +-------+-------+ | | v v [15 Microservices] [Fabric Network] FastAPI Python Hyperledger 2.5.9 | | v v IPFS
+        [Orderer + Peer] (PDF Storage) [CouchDB State]
+      </div>
+
+      <h3>4 Principes architecturaux fondamentaux</h3>
+      <ol>
+        <li><strong>Pipeline IPFS-first :</strong> le PDF est stocké sur IPFS avant tout ancrage Fabric</li>
+        <li><strong>Double ancre cryptographique :</strong> hash_sha256 UNIQUE + ipfs_cid enregistrés on-chain</li>
+        <li>
+          <strong>Vérification indépendante de PostgreSQL :</strong> le verification-service interroge Fabric comme
+          source de vérité
+        </li>
+        <li>
+          <strong>Résilience via Retry Worker :</strong> les diplômes PENDING_BLOCKCHAIN sont re-soumis avec backoff
+          exponentiel
+        </li>
+      </ol>
+    </section>
+
+    <section id="section5">
+      <h2 class="section-title">5. Base de Données diplochain_db</h2>
+      <p>
+        diplochain_db est la base PostgreSQL 14.2 unique partagée par tous les microservices. Elle contient 30 tables
+        organisées en 7 groupes fonctionnels.
+      </p>
+
+      <div class="info-box">
+        <strong>Paramètres techniques :</strong><br>
+        Nom de la base: <code>diplochain_db</code><br>
+        Version PostgreSQL: 14.2 (confirmé par init.sql pgAdmin 4 ERD)<br>
+        Nombre de tables: 30 tables (schéma public)<br>
+        ENUMs définis: 5 types ENUM<br>
+        Pattern PKs: serial (INTEGER) — sauf template_departement.id (UUID)<br>
+        Pattern tables: Base + Extension _ext<br>
+        BDs futures: 9 bases créées dans init.sql (pour migration Database per Service)
+      </div>
+
+      <h3>Les 5 ENUMs PostgreSQL</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%">ENUM</th>
+            <th>Valeurs (défaut *)</th>
+            <th style="width: 30%">Tables utilisatrices</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>statut_diplome</td>
+            <td>PENDING_BLOCKCHAIN* · ORIGINAL · MODIFIE · DUPLIQUE · REVOQUE</td>
+            <td>diplome_blockchain_ext</td>
+          </tr>
+          <tr>
+            <td>statut_institution</td>
+            <td>ACTIVE* · SUSPENDUE · ARCHIVEE</td>
+            <td>institution_blockchain_ext</td>
+          </tr>
+          <tr>
+            <td>statut_validation</td>
+            <td>EN_ATTENTE* · APPROUVEE · REFUSEE</td>
+            <td>entreprise_ext, entreprise_validation_requests</td>
+          </tr>
+          <tr>
+            <td>type_operation</td>
+            <td>CREATION · MODIFICATION · REVOCATION · DUPLICATION · VERIFICATION</td>
+            <td>historique_operations</td>
+          </tr>
+          <tr>
+            <td>statut_user_diplochain</td>
+            <td>EN_ATTENTE* · ACTIF · SUSPENDU</td>
+            <td>user_ext</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Les 30 Tables par Groupe Fonctionnel</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Groupe</th>
+            <th>Tables</th>
+            <th>Microservice propriétaire</th>
+            <th>#</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Utilisateurs</td>
+            <td>User, ROLE, UserRole, user_ext, role_ext, user_role_ext, cursus, audit_log</td>
+            <td>user-service (port 8001)</td>
+            <td>8</td>
+          </tr>
+          <tr>
+            <td>Étudiants</td>
+            <td>etudiant, linkedin_data, nationalite, annee_universitaire</td>
+            <td>student-service (port 8003)</td>
+            <td>4</td>
+          </tr>
+          <tr>
+            <td>Institutions</td>
+            <td>
+              institution, institution_blockchain_ext, specialite, specialite_ext, template_departement, rapport,
+              rapport_institution, langue, type_impression
+            </td>
+            <td>institution-service (port 8002)</td>
+            <td>9</td>
+          </tr>
+          <tr>
+            <td>Diplômes</td>
+            <td>etudiant_diplome, diplome_blockchain_ext, historique_operations</td>
+            <td>diploma-service (port 8004)</td>
+            <td>3</td>
+          </tr>
+          <tr>
+            <td>Entreprises</td>
+            <td>entreprise, entreprise_ext, entreprise_auth_sessions, entreprise_validation_requests</td>
+            <td>entreprise-service (port 8011)</td>
+            <td>4</td>
+          </tr>
+          <tr>
+            <td>Vérification / QR</td>
+            <td>qr_code_records</td>
+            <td>qr-validation-service (8010) + verification-service (8009)</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>Analytics</td>
+            <td>dashboard_metrics_daily</td>
+            <td>analytics-service (8012) + admin-dashboard-service (8015)</td>
+            <td>1</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Pattern Base + Extension _ext</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Table base</th>
+            <th>Table extension</th>
+            <th>Données dans l'extension</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>institution</td>
+            <td>institution_blockchain_ext</td>
+            <td>channel_id, peer_node_url, statut_institution</td>
+          </tr>
+          <tr>
+            <td>etudiant_diplome</td>
+            <td>diplome_blockchain_ext</td>
+            <td>tx_id_fabric, hash_sha256, ipfs_cid, statut_diplome</td>
+          </tr>
+          <tr>
+            <td>User</td>
+            <td>user_ext</td>
+            <td>statut_user_diplochain, avatar, preferences</td>
+          </tr>
+          <tr>
+            <td>ROLE</td>
+            <td>role_ext</td>
+            <td>permissions[], description étendue</td>
+          </tr>
+          <tr>
+            <td>UserRole</td>
+            <td>user_role_ext</td>
+            <td>permissions spécifiques par rôle</td>
+          </tr>
+          <tr>
+            <td>specialite</td>
+            <td>specialite_ext</td>
+            <td>description longue, credits, niveau</td>
+          </tr>
+          <tr>
+            <td>entreprise</td>
+            <td>entreprise_ext</td>
+            <td>statut_validation, invitation_token, azure_tenant_id</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Table diplome_blockchain_ext (Clé Blockchain)</h3>
+      <p>Cette table est le cœur du système, liant les données métier à la blockchain.</p>
+      <ul>
+        <li><code>id_diplome</code> (PK FK CASCADE) : Lien vers etudiant_diplome</li>
+        <li><code>hash_sha256</code> (VARCHAR(64) UNIQUE) : Empreinte numérique unique du PDF</li>
+        <li><code>tx_id_fabric</code> (VARCHAR) : Transaction ID Fabric (NULL si PENDING)</li>
+        <li><code>ipfs_cid</code> (VARCHAR) : Content ID du fichier sur IPFS</li>
+        <li><code>statut</code> (ENUM) : État du cycle de vie</li>
+        <li><code>blockchain_retry_count</code> : Compteur pour le worker de résilience</li>
+      </ul>
+    </section>
+
+    <section id="section6">
+      <h2 class="section-title">6. Les 16 Microservices</h2>
+      <p>15 microservices développés + 1 service externe (pdf-generator) existant consommé via API.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Microservice</th>
+            <th style="width: 8%">Port</th>
+            <th>Tables principales</th>
+            <th>Responsabilité</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>api-gateway</td>
+            <td>8000</td>
+            <td>— (aucune BDD)</td>
+            <td>Routage, auth JWT, rate limiting, CORS</td>
+          </tr>
+          <tr>
+            <td>user-service</td>
+            <td>8001</td>
+            <td>User, ROLE, UserRole, user_ext, audit_log</td>
+            <td>Auth JWT, gestion utilisateurs et rôles</td>
+          </tr>
+          <tr>
+            <td>institution-service</td>
+            <td>8002</td>
+            <td>institution, institution_blockchain_ext, template_departement</td>
+            <td>Institutions, config Fabric, templates</td>
+          </tr>
+          <tr>
+            <td>student-service</td>
+            <td>8003</td>
+            <td>etudiant, linkedin_data, nationalite</td>
+            <td>Profils étudiants, CIN, LinkedIn</td>
+          </tr>
+          <tr>
+            <td>diploma-service</td>
+            <td>8004</td>
+            <td>etudiant_diplome, diplome_blockchain_ext, historique_operations</td>
+            <td>Émission, cycle de vie, historique — <strong>ORCHESTRATEUR</strong></td>
+          </tr>
+          <tr>
+            <td>document-service</td>
+            <td>8005</td>
+            <td>rapport, rapport_institution, template_departement</td>
+            <td>Documents officiels et modèles</td>
+          </tr>
+          <tr>
+            <td>pdf-generator-service ⚡</td>
+            <td>8006</td>
+            <td>(externe)</td>
+            <td><strong>SERVICE EXISTANT</strong> — Génération PDF Jasper + SHA-256</td>
+          </tr>
+          <tr>
+            <td>blockchain-service</td>
+            <td>8007</td>
+            <td>institution_blockchain_ext, diplome_blockchain_ext</td>
+            <td>Interface Hyperledger Fabric — Fabric SDK Python</td>
+          </tr>
+          <tr>
+            <td>storage-service</td>
+            <td>8008</td>
+            <td>diplome_blockchain_ext.ipfs_cid</td>
+            <td>Upload/Download IPFS</td>
+          </tr>
+          <tr>
+            <td>verification-service</td>
+            <td>8009</td>
+            <td>qr_code_records, historique_operations</td>
+            <td>Vérification authenticité diplômes on-chain</td>
+          </tr>
+          <tr>
+            <td>qr-validation-service</td>
+            <td>8010</td>
+            <td>qr_code_records</td>
+            <td>Génération QR codes opaques</td>
+          </tr>
+          <tr>
+            <td>entreprise-service</td>
+            <td>8011</td>
+            <td>entreprise, entreprise_ext, entreprise_auth_sessions</td>
+            <td>Gestion entreprises, Azure AD</td>
+          </tr>
+          <tr>
+            <td>analytics-service</td>
+            <td>8012</td>
+            <td>dashboard_metrics_daily</td>
+            <td>Agrégation métriques, CRON refresh</td>
+          </tr>
+          <tr>
+            <td>notification-service</td>
+            <td>8013</td>
+            <td>etudiant.email, User.email (lecture)</td>
+            <td>Emails SMTP asynchrones</td>
+          </tr>
+          <tr>
+            <td>retry-worker-service</td>
+            <td>8014</td>
+            <td>diplome_blockchain_ext (PENDING)</td>
+            <td>Retry Blockchain PENDING_BLOCKCHAIN</td>
+          </tr>
+          <tr>
+            <td>admin-dashboard-service</td>
+            <td>8015</td>
+            <td>dashboard_metrics_daily, diplome_blockchain_ext</td>
+            <td>Dashboard Super Admin</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="section7">
+      <h2 class="section-title">7. Pipeline d'Émission de Diplôme</h2>
+      <p>
+        Ordre obligatoire du pipeline :
+        <code>pdf-generator-service ⚡ → storage-service → diploma-service (INSERT PENDING) → blockchain-service (Fabric) →
+          diploma-service (UPDATE ORIGINAL) → notification → analytics</code>
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 5%">#</th>
+            <th>Action détaillée</th>
+            <th>Service</th>
+            <th>Table écrite</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Admin soumet formulaire émission (mode: UPLOAD ou GENERATE)</td>
+            <td>Frontend → api-gateway → diploma-service</td>
+            <td>—</td>
+            <td>Validation champs</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Récupération profil étudiant (email, specialite, CIN...)</td>
+            <td>diploma → student-service GET /students/{id}</td>
+            <td>etudiant (lecture)</td>
+            <td>Données étudiant</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Mode GENERATE : récupération template_departement actif</td>
+            <td>diploma → institution-service GET /institutions/{id}/template</td>
+            <td>template_departement (lect.)</td>
+            <td>jrxml_path, jasper_path</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Mode GENERATE : génération PDF Jasper → SHA-256 calculé</td>
+            <td>diploma → pdf-generator-service ⚡ EXISTANT POST /generate</td>
+            <td>— (binaire en mémoire)</td>
+            <td>PDF binaire + hash</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Upload PDF vers IPFS → CID reçu</td>
+            <td>diploma → storage-service POST /storage/upload</td>
+            <td>diplome_blockchain_ext.ipfs_cid</td>
+            <td>CID IPFS retourné</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>INSERT etudiant_diplome (métadonnées officielles)</td>
+            <td>diploma-service</td>
+            <td>etudiant_diplome</td>
+            <td>id_diplome créé</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>INSERT diplome_blockchain_ext (statut=PENDING_BLOCKCHAIN)</td>
+            <td>diploma-service</td>
+            <td>diplome_blockchain_ext</td>
+            <td>PENDING_BLOCKCHAIN</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>RegisterDiploma(id_diplome, hash_sha256, ipfs_cid) via Fabric SDK</td>
+            <td>diploma → blockchain-service POST /blockchain/register</td>
+            <td>institution_blockchain_ext (lect. channel)</td>
+            <td>TX_ID Fabric retourné</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>UPDATE diplome_blockchain_ext SET tx_id_fabric + statut=ORIGINAL</td>
+            <td>diploma-service</td>
+            <td>diplome_blockchain_ext</td>
+            <td>ORIGINAL</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>INSERT historique_operations (type_operation=CREATION)</td>
+            <td>diploma-service</td>
+            <td>historique_operations</td>
+            <td>Journal immuable</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td>INSERT qr_code_records (identifiant_opaque + url_verification)</td>
+            <td>qr-validation-service</td>
+            <td>qr_code_records</td>
+            <td>QR Code généré</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td>Email étudiant — diplôme disponible (async)</td>
+            <td>notification-service POST /notify/diploma-issued</td>
+            <td>etudiant.email_etudiant (lect.)</td>
+            <td>Email envoyé</td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td>UPSERT dashboard_metrics_daily (nb_diplomes_emis++)</td>
+            <td>analytics-service POST /analytics/refresh</td>
+            <td>dashboard_metrics_daily</td>
+            <td>Métriques à jour</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="section8">
+      <h2 class="section-title">8. Retry Worker Service</h2>
+      <p>
+        Le <strong>retry-worker-service</strong> est un processus autonome qui surveille les diplômes bloqués en statut
+        <code>PENDING_BLOCKCHAIN</code> (suite à une panne réseau Fabric par exemple) et les soumet à nouveau
+        automatiquement.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%">Étape</th>
+            <th>Détail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Détection PENDING</td>
+            <td>
+              <code>SELECT * FROM diplome_blockchain_ext WHERE statut='PENDING_BLOCKCHAIN' ORDER BY created_at ASC LIMIT
+                50</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Filtre retry</td>
+            <td>
+              <code>blockchain_retry_count &lt; max_retries (défaut 5) AND blockchain_last_retry &lt; NOW() - INTERVAL '15
+                min'</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Re-soumission Fabric</td>
+            <td>POST <code>blockchain-service/blockchain/register</code></td>
+          </tr>
+          <tr>
+            <td>Succès</td>
+            <td><code>UPDATE SET tx_id_fabric, statut='ORIGINAL' + INSERT historique_operations</code></td>
+          </tr>
+          <tr>
+            <td>Échec</td>
+            <td>
+              <code>UPDATE SET blockchain_retry_count = blockchain_retry_count + 1, blockchain_last_retry = NOW()</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Alerte max retry</td>
+            <td>Si <code>retry_count &gt;= max_retries</code> → alerte admin-dashboard-service</td>
+          </tr>
+          <tr>
+            <td>Scheduler</td>
+            <td>CRON toutes les 15 minutes via APScheduler Python</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="section9">
+      <h2 class="section-title">9. Flux de Vérification</h2>
+      <p>
+        La source de vérité pour la vérification est le ledger Hyperledger Fabric. PostgreSQL n'est PAS utilisé pour
+        valider l'authenticité.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Action</th>
+            <th>Service</th>
+            <th>Source de données</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Scan QR Code → identifiant_opaque reçu</td>
+            <td>Frontend / App mobile</td>
+            <td>URL publique → api-gateway</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Résolution identifiant_opaque → diplome_id</td>
+            <td>verification-service → qr_code_records</td>
+            <td>qr_code_records.identifiant_opaque UNIQUE</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Validation JWT Azure AD (si vérification entreprise)</td>
+            <td>api-gateway → entreprise-service</td>
+            <td>entreprise_auth_sessions (is_valid + expires_at)</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>QueryDiploma(diplome_id) → hash_sha256 + ipfs_cid on-chain</td>
+            <td>verification → blockchain-service</td>
+            <td>Hyperledger Fabric ledger (JAMAIS PostgreSQL)</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Téléchargement PDF via CID IPFS</td>
+            <td>verification → storage-service GET /storage/download/{cid}</td>
+            <td>IPFS — CID récupéré depuis Fabric</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Recalcul SHA-256 du PDF téléchargé</td>
+            <td>verification-service (hashlib.sha256())</td>
+            <td>En mémoire — aucune lecture BDD</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>Comparaison hash recalculé vs hash on-chain Fabric</td>
+            <td>verification-service</td>
+            <td>VALIDE si hash == hash_fabric. INVALIDE sinon.</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>INSERT historique_operations (type_operation=VERIFICATION)</td>
+            <td>verification-service</td>
+            <td>historique_operations — audit uniquement</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>Retour JSON {valid, details, etudiant, institution}</td>
+            <td>api-gateway → Frontend / Entreprise</td>
+            <td>Réponse verification-service</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="section10">
+      <h2 class="section-title">10. Dashboard Super Admin &amp; Analytics</h2>
+      <p>
+        La table <code>dashboard_metrics_daily</code> agrège les KPIs quotidiens pour une performance optimale du
+        tableau de bord.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Métrique</th>
+            <th>Champ BDD</th>
+            <th>Source de calcul</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Diplômes émis du jour</td>
+            <td>nb_diplomes_emis</td>
+            <td>COUNT(*) FROM diplome_blockchain_ext WHERE date_emission = today</td>
+          </tr>
+          <tr>
+            <td>Générés via microservice</td>
+            <td>nb_diplomes_microservice</td>
+            <td>COUNT WHERE generation_mode='MICROSERVICE'</td>
+          </tr>
+          <tr>
+            <td>Uploadés directement</td>
+            <td>nb_diplomes_upload</td>
+            <td>COUNT WHERE generation_mode='UPLOAD'</td>
+          </tr>
+          <tr>
+            <td>Nouveaux étudiants</td>
+            <td>nb_nouveaux_etudiants</td>
+            <td>COUNT FROM etudiant JOIN User WHERE created_at = today</td>
+          </tr>
+          <tr>
+            <td>Institutions actives</td>
+            <td>nb_institutions_actives</td>
+            <td>COUNT DISTINCT institution_id FROM diplome_blockchain_ext today</td>
+          </tr>
+          <tr>
+            <td>Diplômes confirmés (ORIGINAL)</td>
+            <td>nb_diplomes_confirmes</td>
+            <td>COUNT WHERE statut='ORIGINAL' AND updated_at = today</td>
+          </tr>
+          <tr>
+            <td>PENDING_BLOCKCHAIN en attente</td>
+            <td>nb_diplomes_pending</td>
+            <td>COUNT WHERE statut='PENDING_BLOCKCHAIN' (global)</td>
+          </tr>
+          <tr>
+            <td>Révocations</td>
+            <td>nb_diplomes_revoques</td>
+            <td>COUNT WHERE statut='REVOQUE' AND updated_at = today</td>
+          </tr>
+          <tr>
+            <td>Vérifications QR</td>
+            <td>nb_verifications</td>
+            <td>COUNT FROM historique_operations WHERE type_operation='VERIFICATION' today</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="section11">
+      <h2 class="section-title">11. Architecture Sécurité</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Mécanisme</th>
+            <th>Microservice</th>
+            <th>Tables / Implémentation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>JWT RBAC (rôles)</td>
+            <td>api-gateway + user-service</td>
+            <td>ROLE.code (SUPER_ADMIN, ADMIN_INSTITUTION, ETUDIANT, ENTREPRISE) + user_role_ext.permissions[]</td>
+          </tr>
+          <tr>
+            <td>Auth Azure AD (Entreprises)</td>
+            <td>entreprise-service</td>
+            <td>entreprise_auth_sessions — JWT RS256, tenant_id, expires_at, is_valid</td>
+          </tr>
+          <tr>
+            <td>Invitation token sécurisé</td>
+            <td>entreprise-service</td>
+            <td>entreprise_ext.invitation_token + token_expires_at — one-time use</td>
+          </tr>
+          <tr>
+            <td>Workflow validation entreprise</td>
+            <td>entreprise-service + admin-dashboard</td>
+            <td>entreprise_validation_requests — statut_validation ENUM + motif_refus</td>
+          </tr>
+          <tr>
+            <td>Double ancre cryptographique</td>
+            <td>blockchain-service</td>
+            <td>hash_sha256 UNIQUE + ipfs_cid → enregistrés on-chain via RegisterDiploma()</td>
+          </tr>
+          <tr>
+            <td>Journal immuable</td>
+            <td>diploma-service + verification-service</td>
+            <td>historique_operations — tx_id_fabric NOT NULL, timestamp DEFAULT now()</td>
+          </tr>
+          <tr>
+            <td>Audit général</td>
+            <td>user-service</td>
+            <td>audit_log — old_values/new_values jsonb — changed_by FK User</td>
+          </tr>
+          <tr>
+            <td>Isolation réseau</td>
+            <td>Docker Compose</td>
+            <td>blockchain-service non exposé publiquement — réseau Docker interne</td>
+          </tr>
+          <tr>
+            <td>TLS 1.3</td>
+            <td>api-gateway</td>
+            <td>Toutes communications chiffrées — HTTPS obligatoire en production</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="section12">
+      <h2 class="section-title">12. Hyperledger Fabric — Guide Complet</h2>
+
+      <h3>12.1 Pourquoi Hyperledger Fabric ?</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Critère</th>
+            <th>Fabric (choisi)</th>
+            <th>Ethereum public</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Confidentialité</td>
+            <td>Canaux isolés — données d'une institution invisibles aux autres</td>
+            <td>Tout est public par défaut</td>
+          </tr>
+          <tr>
+            <td>Performance</td>
+            <td>~1000 TPS, finalité en secondes</td>
+            <td>~15 TPS sur mainnet, finalité probabiliste</td>
+          </tr>
+          <tr>
+            <td>Identité</td>
+            <td>Certificats X.509, MSP, rôles précis</td>
+            <td>Clés cryptographiques anonymes</td>
+          </tr>
+          <tr>
+            <td>Coût</td>
+            <td>Pas de gas fees — réseau privé</td>
+            <td>Gas fees variables et coûteux</td>
+          </tr>
+          <tr>
+            <td>Contrôle</td>
+            <td>Gouvernance privée — règles personnalisables</td>
+            <td>Règles immuables du protocole public</td>
+          </tr>
+          <tr>
+            <td>RGPD</td>
+            <td>Données on-chain contrôlées, révocables</td>
+            <td>Immuabilité totale problématique pour RGPD</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>12.2 Structure du dossier fabric-network</h3>
+      <pre><code>fabric-network/
+├── crypto-config.yaml         # Topologie du réseau
+├── configtx.yaml              # Profils des canaux + politiques
+├── docker-compose.fabric.yml  # Orchestration Docker (4 conteneurs)
+├── .env                       # Variables d'environnement
+├── bin/                       # Binaires Fabric 2.5.9
+│   ├── cryptogen              # Génération PKI
+│   ├── configtxgen            # Génération blocs genesis
+│   ├── peer                   # CLI peer
+│   └── osnadmin               # Admin API orderer
+├── crypto-config/             # ⚠ Généré — NE PAS commiter
+│   ├── ordererOrganizations/
+│   └── peerOrganizations/
+├── channel-artifacts/
+│   ├── genesis.block
+│   └── diplochain.tar.gz      # Package chaincode compilé
+├── chaincode/diplochain/
+│   ├── diplochain.go          # Smart contract Go
+│   ├── go.mod
+│   └── go.sum
+└── scripts/
+    ├── bootstrap.sh
+    ├── create-channel.sh
+    └── install-fabric.sh</code></pre>
+
+      <h3>12.3 Conteneurs Docker Fabric</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Conteneur</th>
+            <th>Ports</th>
+            <th>Rôle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>orderer.diplochain.local</td>
+            <td>7050 (gRPC), 7053 (Admin API), 8443 (Health)</td>
+            <td>Nœud orderer Raft — ordonne les transactions, crée les blocs</td>
+          </tr>
+          <tr>
+            <td>peer0.diplochain.local</td>
+            <td>7051 (gRPC), 7052 (chaincode), 9444 (Health)</td>
+            <td>Nœud pair — maintient le ledger, exécute le chaincode</td>
+          </tr>
+          <tr>
+            <td>couchdb0.diplochain.local</td>
+            <td>5984 (HTTP UI)</td>
+            <td>Base de données d'état du chaincode — requêtes JSON complexes</td>
+          </tr>
+          <tr>
+            <td>fabric-ca.diplochain.local</td>
+            <td>7054 (HTTPS)</td>
+            <td>Certificate Authority — enregistrement dynamique utilisateurs/peers</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>12.4 Chaincode diplochain.go — 6 Fonctions</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Fonction</th>
+            <th>Paramètres</th>
+            <th>Retour</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>RegisterDiploma()</td>
+            <td>diplomeID, hashSHA256, ipfsCID, institutionID, etudiantID, dateEmission</td>
+            <td>TX_ID (string)</td>
+            <td>Ancre un diplôme on-chain avec unicité SHA-256 et idempotence</td>
+          </tr>
+          <tr>
+            <td>QueryDiploma()</td>
+            <td>diplomeID</td>
+            <td>DiplomaRecord (JSON)</td>
+            <td>Lit un diplôme depuis le ledger — source de vérité</td>
+          </tr>
+          <tr>
+            <td>VerifyDiploma()</td>
+            <td>diplomeID, hashSHA256</td>
+            <td>DiplomaRecord ou erreur</td>
+            <td>Vérifie authenticité + statut non révoqué</td>
+          </tr>
+          <tr>
+            <td>RevokeDiploma()</td>
+            <td>diplomeID, motif</td>
+            <td>TX_ID (string)</td>
+            <td>Révoque un diplôme — statut → REVOQUE</td>
+          </tr>
+          <tr>
+            <td>QueryByInstitution()</td>
+            <td>institutionID</td>
+            <td>[]DiplomaRecord</td>
+            <td>Liste tous les diplômes d'une institution via composite key</td>
+          </tr>
+          <tr>
+            <td>GetDiplomaHistory()</td>
+            <td>diplomeID</td>
+            <td>[]HistoryEntry</td>
+            <td>Historique complet des transactions on-chain</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>12.5 Architecture 1 Institution = 1 Canal</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Institution</th>
+            <th>Canal Fabric</th>
+            <th>Ledger isolé</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Université de Tunis (id=1)</td>
+            <td>channel-1</td>
+            <td>Ledger A — uniquement institution 1</td>
+          </tr>
+          <tr>
+            <td>ESPRIT (id=2)</td>
+            <td>channel-2</td>
+            <td>Ledger B — uniquement institution 2</td>
+          </tr>
+          <tr>
+            <td>INSAT (id=42)</td>
+            <td>channel-42</td>
+            <td>Ledger C — uniquement institution 42</td>
+          </tr>
+          <tr>
+            <td>Toute nouvelle institution (id=N)</td>
+            <td>channel-N</td>
+            <td>Ledger N — isolé des autres</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="warning-box">
+        <strong>⚠ Convention Fabric 2.5 :</strong> channel-id avec TIRETS (pas underscores). Exemple: channel-1,
+        channel-42 (NON channel_1).
+      </div>
+
+      <h3>12.6 Workflow d'installation Fabric (6 étapes)</h3>
+      <h4>Étape 1: Installation binaires Fabric 2.5.9</h4>
+      <pre><code>curl -sSL https://github.com/hyperledger/fabric/releases/download/v2.5.9/hyperledger-fabric-linux-amd64-2.5.9.tar.gz | tar -xz -C .
+docker pull hyperledger/fabric-peer:2.5
+docker pull hyperledger/fabric-orderer:2.5
+echo 'export PATH=$HOME/diplochain/fabric-network/bin:$PATH' &gt;&gt; ~/.bashrc</code></pre>
+
+      <h4>Étape 2: Génération des certificats (cryptogen)</h4>
+      <pre><code>export FABRIC_CFG_PATH=$PWD
+cryptogen generate --config=./crypto-config.yaml --output=./crypto-config</code></pre>
+
+      <h4>Étape 3: Génération du genesis block</h4>
+      <pre><code>configtxgen -profile DiploChainGenesis -channelID diplochain-system-channel -outputBlock ./channel-artifacts/genesis.block</code></pre>
+
+      <h4>Étape 4: Démarrage conteneurs Docker</h4>
+      <pre><code>docker-compose -f docker-compose.fabric.yml up -d
+docker ps --filter 'name=diplochain' --format 'table {{.Names}}\t{{.Status}}'</code></pre>
+
+      <h4>Étape 5: Création canal institution</h4>
+      <pre><code>./scripts/create-channel.sh 1   # → crée channel-1 pour institution_id=1
+./scripts/create-channel.sh 2   # → crée channel-2 pour institution_id=2</code></pre>
+
+      <h4>Étape 6: Déploiement chaincode (4 phases)</h4>
+      <pre><code># Phase 1: Package
+peer lifecycle chaincode package ./channel-artifacts/diplochain.tar.gz --path ./chaincode/diplochain --lang golang --label diplochain_1.0
+# Phase 2: Install
+peer lifecycle chaincode install /tmp/diplochain.tar.gz
+# Phase 3: Approve
+peer lifecycle chaincode approveformyorg -o orderer.diplochain.local:7050 --channelID channel-1 --name diplochain --version 1.0 --sequence 1
+# Phase 4: Commit
+peer lifecycle chaincode commit -o orderer.diplochain.local:7050 --channelID channel-1 --name diplochain --version 1.0 --sequence 1</code></pre>
+    </section>
+
+    <section id="section13">
+      <h2 class="section-title">13. Architecture Docker</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Conteneur</th>
+            <th>Port</th>
+            <th>Base de données</th>
+            <th>Note Docker</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>api-gateway</td>
+            <td>80/443</td>
+            <td>—</td>
+            <td>Nginx ou FastAPI — point d'entrée unique — TLS 1.3</td>
+          </tr>
+          <tr>
+            <td>user-service</td>
+            <td>8001</td>
+            <td>diplochain_db</td>
+            <td>Tables User/ROLE/user_ext/audit_log</td>
+          </tr>
+          <tr>
+            <td>institution-service</td>
+            <td>8002</td>
+            <td>diplochain_db</td>
+            <td>institution, institution_blockchain_ext, template_departement</td>
+          </tr>
+          <tr>
+            <td>student-service</td>
+            <td>8003</td>
+            <td>diplochain_db</td>
+            <td>etudiant, linkedin_data, nationalite</td>
+          </tr>
+          <tr>
+            <td>diploma-service</td>
+            <td>8004</td>
+            <td>diplochain_db</td>
+            <td>etudiant_diplome, diplome_blockchain_ext, historique_operations</td>
+          </tr>
+          <tr>
+            <td>document-service</td>
+            <td>8005</td>
+            <td>diplochain_db</td>
+            <td>rapport, rapport_institution, template_departement</td>
+          </tr>
+          <tr>
+            <td>pdf-generator-service ⚡ EXISTANT</td>
+            <td>—</td>
+            <td>(externe)</td>
+            <td>SERVICE EXISTANT — Non dans notre docker-compose</td>
+          </tr>
+          <tr>
+            <td>blockchain-service</td>
+            <td>8007</td>
+            <td>diplochain_db</td>
+            <td>institution_blockchain_ext — Fabric SDK</td>
+          </tr>
+          <tr>
+            <td>storage-service</td>
+            <td>8008</td>
+            <td>diplochain_db</td>
+            <td>ipfs_cid — connexion IPFS</td>
+          </tr>
+          <tr>
+            <td>verification-service</td>
+            <td>8009</td>
+            <td>diplochain_db</td>
+            <td>qr_code_records + historique_operations</td>
+          </tr>
+          <tr>
+            <td>qr-validation-service</td>
+            <td>8010</td>
+            <td>diplochain_db</td>
+            <td>qr_code_records — lib qrcode Python</td>
+          </tr>
+          <tr>
+            <td>entreprise-service</td>
+            <td>8011</td>
+            <td>diplochain_db</td>
+            <td>entreprise, entreprise_auth_sessions</td>
+          </tr>
+          <tr>
+            <td>analytics-service</td>
+            <td>8012</td>
+            <td>diplochain_db</td>
+            <td>dashboard_metrics_daily — CRON APScheduler</td>
+          </tr>
+          <tr>
+            <td>notification-service</td>
+            <td>8013</td>
+            <td>diplochain_db (lect.)</td>
+            <td>etudiant.email + User.email — SMTP async</td>
+          </tr>
+          <tr>
+            <td>retry-worker-service</td>
+            <td>8014</td>
+            <td>diplochain_db</td>
+            <td>diplome_blockchain_ext WHERE PENDING</td>
+          </tr>
+          <tr>
+            <td>admin-dashboard-service</td>
+            <td>8015</td>
+            <td>diplochain_db (lect.)</td>
+            <td>dashboard_metrics_daily + diplome_blockchain_ext</td>
+          </tr>
+          <tr>
+            <td>ipfs-node</td>
+            <td>5001/8080</td>
+            <td>IPFS datastore</td>
+            <td>Nœud IPFS local — API 5001, Gateway 8080</td>
+          </tr>
+          <tr>
+            <td>fabric-network</td>
+            <td>7050/7051</td>
+            <td>Ledger Fabric</td>
+            <td>Orderer + Peer — channels par institution</td>
+          </tr>
+          <tr>
+            <td>postgres</td>
+            <td>5432</td>
+            <td>diplochain_db</td>
+            <td>PostgreSQL 14.2 — volume persistant + init.sql</td>
+          </tr>
+          <tr>
+            <td>pgadmin</td>
+            <td>5050</td>
+            <td>—</td>
+            <td>Interface admin PostgreSQL — dev uniquement</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="section14">
+      <h2 class="section-title">14. Backlog Agile Scrum</h2>
+      <div class="stats-bar" style="justify-content: flex-start; margin-bottom: 20px">
+        <span class="stat-badge" style="background-color: #555">120 TÂCHES TOTAL</span>
+        <span class="stat-badge" style="background-color: #555">260h DURÉE TOTALE</span>
+        <span class="stat-badge" style="background-color: #dc3545">42 CRITIQUES</span>
+        <span class="stat-badge" style="background-color: #fd7e14">49 HAUTES</span>
+        <span class="stat-badge" style="background-color: #0d6efd">24 MOYENNES</span>
+        <span class="stat-badge" style="background-color: #198754">5 BASSES</span>
+      </div>
+
+      <div class="info-box">
+        <strong>Légende Priorité :</strong><br>
+        <span class="priority-critique">🔴 CRITIQUE</span> : Bloque le pipeline principal (Service inutilisable)<br>
+        <span class="priority-haute">🟠 HAUTE</span> : Fonctionnalité principale attendue<br>
+        <span class="priority-moyenne">🔵 MOYENNE</span> : Améliore l'expérience — non bloquante<br>
+        <span class="priority-basse">🟢 BASSE</span> : Nice-to-have
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>EPIC</th>
+            <th>Microservice</th>
+            <th>Tâches</th>
+            <th>Durée</th>
+            <th>Livrables clés</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>user-service</td>
+            <td>12 tâches</td>
+            <td>22h</td>
+            <td>Auth JWT, RBAC, audit_log</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>student-service</td>
+            <td>10 tâches</td>
+            <td>19h</td>
+            <td>Profil étudiant, LinkedIn, CIN</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>institution-service</td>
+            <td>10 tâches</td>
+            <td>24h</td>
+            <td>Config Fabric, templates Jasper</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>diploma-service</td>
+            <td>9 tâches</td>
+            <td>24h</td>
+            <td>Pipeline émission, révocation</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>pdf-generator-service ⚡</td>
+            <td>3 tâches</td>
+            <td>5h</td>
+            <td>SERVICE EXISTANT — Intégration API</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>blockchain-service</td>
+            <td>7 tâches</td>
+            <td>18h</td>
+            <td>RegisterDiploma, QueryDiploma</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>storage-service</td>
+            <td>6 tâches</td>
+            <td>13h</td>
+            <td>Upload/Download IPFS</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>verification-service</td>
+            <td>7 tâches</td>
+            <td>15h</td>
+            <td>Vérification authenticité</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>qr-validation-service</td>
+            <td>5 tâches</td>
+            <td>10h</td>
+            <td>QR Codes opaques</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>entreprise-service</td>
+            <td>11 tâches</td>
+            <td>21h</td>
+            <td>Azure AD, workflow validation</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td>notification-service</td>
+            <td>7 tâches</td>
+            <td>11h</td>
+            <td>Emails SMTP async</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td>analytics-service</td>
+            <td>7 tâches</td>
+            <td>12h</td>
+            <td>Métriques, CRON refresh</td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td>admin-dashboard-service</td>
+            <td>7 tâches</td>
+            <td>15h</td>
+            <td>Dashboard Super Admin</td>
+          </tr>
+          <tr>
+            <td>14</td>
+            <td>retry-worker-service</td>
+            <td>6 tâches</td>
+            <td>10h</td>
+            <td>Retry PENDING Blockchain</td>
+          </tr>
+          <tr>
+            <td>15</td>
+            <td>document-service</td>
+            <td>6 tâches</td>
+            <td>11h</td>
+            <td>Rapports officiels</td>
+          </tr>
+          <tr>
+            <td>16</td>
+            <td>api-gateway</td>
+            <td>7 tâches</td>
+            <td>14h</td>
+            <td>Routing, auth, rate limiting</td>
+          </tr>
+          <tr style="font-weight: bold; background-color: #e2e6ea">
+            <td>TOTAL</td>
+            <td></td>
+            <td>120 tâches</td>
+            <td>254h</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="section15">
+      <h2 class="section-title">15. Limitations et Perspectives</h2>
+      <h3>Limitations</h3>
+      <ol>
+        <li>
+          <strong>Base partagée diplochain_db :</strong> risque de couplage — Migration Database per Service planifiée
+          (9 bases créées dans init.sql)
+        </li>
+        <li><strong>PKs serial (INTEGER) :</strong> si migration UUID requis, impact sur toutes les FK et APIs REST</li>
+        <li>
+          <strong>Incohérence types PK :</strong> template_departement.departement_id est UUID mais FKs institutions
+          sont en INTEGER
+        </li>
+        <li>
+          <strong>Cohérence éventuelle :</strong> transactions distribuées peuvent partiellement échouer — Saga pattern
+          requis
+        </li>
+        <li>
+          <strong>notification-service sans file :</strong> si le service tombe, emails perdus — Redis/RabbitMQ
+          recommandé
+        </li>
+      </ol>
+
+      <h3>Perspectives</h3>
+      <ol>
+        <li><strong>Migration Database per Service :</strong> isoler chaque groupe dans sa propre base</li>
+        <li><strong>Event-driven architecture :</strong> Kafka pour découpler et garantir livraison notifications</li>
+        <li><strong>Service Mesh (Istio) :</strong> observabilité, circuit breakers, mutual TLS</li>
+        <li><strong>Migration UUID généralisée :</strong> aligner tous les PKs en UUID</li>
+        <li>
+          <strong>API publique de vérification :</strong> endpoint public sans authentification pour vérification rapide
+          QR
+        </li>
+        <li><strong>Mobile app :</strong> application mobile pour étudiants et entreprises</li>
+      </ol>
+    </section>
+
+    <section id="section16">
+      <h2 class="section-title">16. Conclusion</h2>
+      <p>
+        DiploChain implémente une architecture de 15 microservices développés + pdf-generator-service (service existant)
+        s'appuyant sur PostgreSQL 14.2 centralisée (diplochain_db) contenant 30 tables organisées selon le pattern Base
+        + Extension _ext.
+      </p>
+
+      <div class="info-box">
+        <strong>4 principes architecturaux fondamentaux :</strong>
+        <ol>
+          <li>Pipeline IPFS-first — le PDF est stocké sur IPFS avant l'ancrage Fabric</li>
+          <li>Double ancre cryptographique — hash_sha256 UNIQUE + ipfs_cid dans diplome_blockchain_ext</li>
+          <li>
+            Vérification indépendante de PostgreSQL — le Verification Service interroge Fabric (source de vérité
+            on-chain)
+          </li>
+          <li>
+            Résilience via Retry Worker — les diplômes en échec Fabric (PENDING_BLOCKCHAIN) sont automatiquement
+            re-soumis
+          </li>
+        </ol>
+      </div>
+
+      <p>
+        Corrections majeures appliquées : PostgreSQL 14.2 (pas 16.11) — 30 tables réelles (pas 12) — PKs serial INTEGER
+        — Pattern _ext — 15 microservices développés + pdf-generator-service (existant).
+      </p>
+    </section>
+
+    <footer>
+      <p>
+        DiploChain — PFE 2024-2025 — Rapport Technique Confidentiel<br>
+        Généré pour l'équipe technique — Mars 2026
+      </p>
+    </footer>
+  
+
+</body></html>

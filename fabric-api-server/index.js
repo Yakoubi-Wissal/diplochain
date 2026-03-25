@@ -40,9 +40,9 @@ const CONFIG = {
   ORDERER:        process.env.ORDERER_ADDRESS  || "orderer.diplochain.local:7053",
   PEER:           process.env.PEER_ADDRESS     || "peer0.diplochain.local:7051",
   ORDERER_GRPC:   process.env.ORDERER_GRPC     || "orderer.diplochain.local:7050",
-  CA_FILE:        process.env.ORDERER_CA_FILE  || path.join(process.cwd(), "../fabric-network/crypto-config/ordererOrganizations/orderer.diplochain.local/orderers/orderer.orderer.diplochain.local/tls/ca.crt"),
-  CLIENT_CERT:    process.env.ADMIN_CERT       || path.join(process.cwd(), "../fabric-network/crypto-config/ordererOrganizations/orderer.diplochain.local/users/Admin@orderer.diplochain.local/tls/client.crt"),
-  CLIENT_KEY:     process.env.ADMIN_KEY        || path.join(process.cwd(), "../fabric-network/crypto-config/ordererOrganizations/orderer.diplochain.local/users/Admin@orderer.diplochain.local/tls/client.key"),
+  CA_FILE:        process.env.ORDERER_CA_FILE  || path.join(process.env.FABRIC_NET_DIR || path.join(process.cwd(), "../fabric-network"), "crypto-config/ordererOrganizations/orderer.diplochain.local/orderers/orderer.orderer.diplochain.local/tls/ca.crt"),
+  CLIENT_CERT:    process.env.ADMIN_CERT       || path.join(process.env.FABRIC_NET_DIR || path.join(process.cwd(), "../fabric-network"), "crypto-config/ordererOrganizations/orderer.diplochain.local/users/Admin@orderer.diplochain.local/tls/client.crt"),
+  CLIENT_KEY:     process.env.ADMIN_KEY        || path.join(process.env.FABRIC_NET_DIR || path.join(process.cwd(), "../fabric-network"), "crypto-config/ordererOrganizations/orderer.diplochain.local/users/Admin@orderer.diplochain.local/tls/client.key"),
   COUCHDB_URL:    process.env.COUCHDB_URL      || "http://admin:diplochain_couch_2025@localhost:5984",
 };
 
@@ -211,6 +211,28 @@ app.get("/api/fabric/transactions", async (req, res) => {
     `, channel ? [limit, channel] : [limit]);
 
     res.json(rows.map((r) => ({ ...r, timestamp: r.timestamp?.toISOString() || "" })));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/** GET /api/fabric/transactions/:id/history */
+app.get("/api/fabric/transactions/:id/history", async (req, res) => {
+  const { id } = req.params;
+  const { channel = "channel-1" } = req.query;
+  const payload = JSON.stringify({ function: "GetDiplomaHistory", Args: [String(id)] });
+  const peerCmd = [
+    `docker exec`,
+    `-e CORE_PEER_MSPCONFIGPATH=/tmp/admin-msp`,
+    `peer0.diplochain.local`,
+    `peer chaincode query`, // History is a query
+    `-C ${channel} -n diplochain`,
+    `-c '${payload.replace(/'/g, "'\\''")}'`,
+  ].join(" ");
+
+  try {
+    const output = await execAsync(peerCmd);
+    res.json(JSON.parse(output));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

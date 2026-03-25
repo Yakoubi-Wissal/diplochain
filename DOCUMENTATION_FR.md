@@ -53,7 +53,7 @@ DiploChain est une plateforme décentralisée pour l'émission, la vérification
 ### Étapes d'Installation
 1.  **Cloner le dépôt** :
     ```bash
-    git clone <url_du_depot>
+    git clone https://github.com/Yakoubi-Wissal/diplochain.git
     cd diplochain
     ```
 2.  **Démarrer l'Infrastructure** :

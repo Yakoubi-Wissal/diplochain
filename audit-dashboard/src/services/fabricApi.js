@@ -185,13 +185,50 @@ export const getFullProjectReport = async () => {
   return fetchWithTimeout(`${BASE_URL}/api/fabric/report-full-project`, { headers: getHeaders() });
 };
 
+/** Récupérer l'état de découverte des services */
+export const getDiscovery = async () => {
+  if (MOCK) {
+    await delay(300);
+    return {
+      "user": { status: "up" },
+      "institution": { status: "up" },
+      "student": { status: "up" },
+      "blockchain": { status: "up" },
+      "storage": { status: "up" },
+      "verification": { status: "up" },
+      "analytics": { status: "up" },
+    };
+  }
+  try {
+     const data = await fetchWithTimeout(`${BASE_URL}/discovery`, { headers: getHeaders() });
+     return data;
+  } catch (e) {
+     // Re-essayer sur le port de la gateway si direct fail
+     return fetchWithTimeout(`http://localhost:8000/discovery`, { headers: getHeaders() });
+  }
+};
+
+/** Historique complet d'une clé (Traceability Audit) */
+export const getTransactionHistory = async (id, channel = "channel-1") => {
+  if (MOCK) {
+    await delay(200);
+    return [
+      { tx_id: "tx-101", timestamp: "2024-03-24T10:00:00Z", statut: "ORIGINAL", hash_sha256: "HASH-A" },
+      { tx_id: "tx-202", timestamp: "2024-03-24T14:30:00Z", statut: "REVOQUE", hash_sha256: "HASH-A" },
+    ];
+  }
+  return fetchWithTimeout(`${BASE_URL}/api/fabric/transactions/${id}/history?channel=${channel}`, { headers: getHeaders() });
+};
+
 // Objet nommé pour import groupé
 export const fabricApi = { 
   getNetworkStatus, 
   getChannels, 
   getTransactions, 
+  getTransactionHistory,
   getLogs, 
   getStats,
+  getDiscovery,
   getFullProjectReport,
   createChannel, 
   invokeChaincode, 

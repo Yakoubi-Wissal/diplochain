@@ -50,29 +50,28 @@ For more detailed technical info, see:
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (One-Click Deployment)
+
+The entire ecosystem (Blockchain, Databases, Microservices, and Dashboard) is now unified under a single orchestration.
 
 ### 1. Prerequisites
-- Docker & Docker Compose
-- Node.js (v18+)
-- Go (v1.21+)
+- Docker & Docker Compose (V2 recommended)
 
-### 2. Launch Environment
+### 2. Launch Everything
 ```bash
-# Clone the project
-git clone https://github.com/your-repo/diplochain.git
+# Clone and enter the project
+git clone https://github.com/Yakoubi-Wissal/diplochain.git
 cd diplochain
 
-# Start the full stack (Infra + Network)
-./run_diplochain.sh
-
-# Start the API Server
-cd fabric-api-server && npm install && npm start
-
-# Start the Dashboard
-# In a new terminal
-cd audit-dashboard && npm install && npm run dev
+# Start the entire stack
+docker-compose up -d --build
 ```
+
+### 3. Access the Services
+- **Audit Dashboard**: [http://localhost:3000](http://localhost:3000)
+- **API Gateway (V2)**: [http://localhost:8000](http://localhost:8000)
+- **Fabric API Server**: [http://localhost:4001](http://localhost:4001)
+- **IPFS Node**: [http://localhost:5001/webui](http://localhost:5001/webui)
 
 ---
 

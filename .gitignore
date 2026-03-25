@@ -25,3 +25,28 @@ db_data/
 # IDE
 .vscode/
 .idea/
+# Node / React
+node_modules/
+build/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv_diplochain/
+
+# Fabric sensitive files
+fabric-network/crypto-config/
+fabric-network/fabric-samples/
+fabric-network/channel-artifacts/*.tar.gz
+
+
+
+# IDE
+*.swp
+*.idea/
+
+
+# Mac / Windows
+.DS_Store
+Thumbs.db

@@ -1,0 +1,70 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\title{DiploChain V2 : Système Décentralisé de Gestion et de Certification des Diplômes Académiques}
+\author{Yakoubi Wissal}
+\date{Mars 2024}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter{Introduction}
+Le Projet de Fin d'Études (PFE) DiploChain V2 répond à une problématique majeure dans l'enseignement supérieur : la fraude aux diplômes et la complexité des processus de vérification. Ce rapport détaille la conception et la réalisation d'une plateforme basée sur la technologie blockchain Hyperledger Fabric.
+
+\chapter{Analyse et Étude du Besoin}
+\section{Objectifs du Système}
+L'objectif principal est de fournir un registre immuable pour l'ancrage des diplômes. Le système doit permettre :
+\begin{itemize}
+    \item L'émission sécurisée par les institutions.
+    \item La vérification instantanée par des tiers (employeurs, universités).
+    \item La révocation transparente en cas de nécessité.
+\end{itemize}
+
+\chapter{Architecture du Système}
+\section{Vue d'ensemble}
+L'architecture est composée de quatre couches principales :
+\begin{enumerate}
+    \item \textbf{Frontend (React)} : Tableau de bord d'audit dynamique.
+    \item \textbf{Backend (Node.js/Express)} : Pont de communication entre l'interface et la blockchain.
+    \item \textbf{Blockchain (Hyperledger Fabric)} : Réseau de confiance avec noeuds peers et orderer.
+    \item \textbf{Base de données (PostgreSQL)} : Historique des opérations off-chain pour l'analyse rapide.
+\end{enumerate}
+
+\section{Schéma d'interaction}
+Le client interagit via des APIs REST. Le serveur API exécute les transactions sur le réseau Fabric via le SDK ou des commandes CLI sécurisées. Les documents (PDF) sont hachés et stockés sur IPFS, seule la preuve d'intégrité (Hash) étant inscrite sur le registre.
+
+\chapter{Réalisation Technique}
+\section{Le Smart Contract (Chaincode)}
+Le chaincode est écrit en Golang. Ses fonctions clés incluent :
+\begin{itemize}
+    \item \texttt{RegisterDiploma} : Inscription d'un nouvel asset.
+    \item \texttt{VerifyDiploma} : Comparaison de hash on-chain.
+    \item \texttt{RevokeDiploma} : Mise à jour du statut avec motif.
+\end{itemize}
+
+\section{Le Dashboard d'Audit}
+L'interface utilisateur fournit une console de contrôle permettant de surveiller en temps réel :
+\begin{itemize}
+    \item Le nombre total de transactions.
+    \item L'état de santé des noeuds Fabric.
+    \item Les journaux d'audit consolidés.
+\end{itemize}
+
+\chapter{Conclusion et Perspectives}
+DiploChain V2 représente une avancée significative dans la sécurisation des titres académiques. Les perspectives incluent l'intégration d'identités décentralisées (DID) pour une conformité totale avec les standards de diplômes numériques européens.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
