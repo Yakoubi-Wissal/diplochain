@@ -21,8 +21,10 @@ jobs:
           # We check one service as a representative sample
           cd backend/app/v2/user-service
           pip install -r requirements.txt
-          pip install pytest httpx
+          pip install pytest httpx pytest-asyncio pytest-env aiosqlite
       - name: Run tests
+        env:
+          DATABASE_URL: sqlite+aiosqlite:///:memory:
         run: |
           cd backend/app/v2/user-service
           pytest
@@ -53,4 +55,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build Docker images
         run: |
-          docker compose -f docker-compose.v2.yml build
+          docker compose -f docker-compose.yml build
