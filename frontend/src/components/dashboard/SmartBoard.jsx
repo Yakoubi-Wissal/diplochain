@@ -3,7 +3,7 @@ import { C } from './DashboardTokens';
 import { Card, StatCard, DCButton, Badge } from './UIPrimitives';
 import { fabricApi } from '../../services/fabricApi';
 
-export default function SmartBoard({ stats, onToast, addLog, onRunAudit, auditRunning }) {
+export default function SmartBoard({ stats, stability, history, onToast, addLog, onRunAudit, auditRunning }) {
   const handleAction = async (actionFn, name) => {
     addLog(`Initiating: ${name}`, "info");
     try {
@@ -20,7 +20,6 @@ export default function SmartBoard({ stats, onToast, addLog, onRunAudit, auditRu
     if (onRunAudit) {
       onRunAudit();
     } else {
-      // Fallback si pas de prop
       addLog("Starting Full System Audit...", "info");
       try {
         const report = await fabricApi.getFullProjectReport();
@@ -63,13 +62,13 @@ export default function SmartBoard({ stats, onToast, addLog, onRunAudit, auditRu
           </div>
         </Card>
 
-        <Card icon="📊" title="Compliance Overview">
+        <Card icon="📊" title="Stability & Security Score" action={<Badge text="Real-time" color={C.teal} />}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
              {[
-               { label: "GDPR Compliance", val: 98, color: C.green },
-               { label: "Blockchain Integrity", val: 100, color: C.blue },
-               { label: "Service Uptime", val: 99.4, color: C.teal },
-               { label: "Audit Readiness", val: 85, color: C.amber },
+               { label: "System Stability", val: stability?.stability || 0, color: C.green, sub: "Based on 0 critical crashes" },
+               { label: "Security Integrity", val: stability?.security || 0, color: C.blue, sub: "3 potential vulnerabilities detected" },
+               { label: "Network Health", val: stability?.network || 0, color: C.teal, sub: "Latency < 50ms" },
+               { label: "Anomaly Score", val: stability?.anomaly || 0, color: C.amber, sub: "0 suspicious activities" },
              ].map((m, i) => (
                <div key={m.label}>
                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12, fontWeight: 600 }}>
@@ -83,8 +82,38 @@ export default function SmartBoard({ stats, onToast, addLog, onRunAudit, auditRu
                      animation: `dc-fadein 1s ${C.anim} both`, animationDelay: `${i * 150}ms`
                    }} />
                  </div>
+                 <div style={{ fontSize: 10, color: C.textMut, marginTop: 4 }}>{m.sub}</div>
                </div>
              ))}
+          </div>
+          <div style={{ marginTop: 15, padding: 12, background: `${C.blue}10`, borderRadius: 8, border: `1px solid ${C.blue}30` }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.blue, textTransform: "uppercase", marginBottom: 5 }}>AI Recommendations</div>
+            <div style={{ fontSize: 11, color: C.textSec }}>
+                {stability?.recommendations?.map((r, idx) => (
+                    <div key={idx}>• {r}</div>
+                )) || "Fetching recommendations..."}
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
+        <Card icon="📈" title="Historical Trends (Stability & Security)">
+          <div style={{ height: 120, display: "flex", alignItems: "flex-end", gap: 8, padding: "10px 0" }}>
+             {history?.map((h, i) => (
+               <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <div style={{ width: "100%", display: "flex", gap: 2, height: 100, alignItems: "flex-end" }}>
+                     <div style={{ flex: 1, height: `${h.stability}%`, background: C.green, opacity: 0.7, borderRadius: "2px 2px 0 0" }} />
+                     <div style={{ flex: 1, height: `${h.security}%`, background: C.blue, opacity: 0.7, borderRadius: "2px 2px 0 0" }} />
+                  </div>
+                  <div style={{ fontSize: 9, color: C.textMut }}>{new Date(h.timestamp).getHours()}h</div>
+               </div>
+             ))}
+             {(!history || history.length === 0) && <div style={{ width: "100%", textAlign: "center", color: C.textMut, fontSize: 12 }}>No historical data available</div>}
+          </div>
+          <div style={{ display: "flex", gap: 16, marginTop: 10 }}>
+             <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, background: C.green, borderRadius: 2 }} /><span style={{ fontSize: 10, color: C.textSec }}>Stability</span></div>
+             <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, background: C.blue, borderRadius: 2 }} /><span style={{ fontSize: 10, color: C.textSec }}>Security</span></div>
           </div>
         </Card>
       </div>

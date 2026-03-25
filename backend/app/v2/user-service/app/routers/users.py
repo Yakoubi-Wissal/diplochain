@@ -30,14 +30,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(db_user)
     return db_user
 
-@router.get("/{user_id}", response_model=UserRead)
-async def read_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.get(User, user_id)
-    if not result:
-        raise HTTPException(status_code=404, detail="User not found")
-    return result
-
-@router.get("/all", response_model=List[UserRead])
+@router.get("/all")
 async def list_users(status: Optional[str] = None, db: AsyncSession = Depends(get_db)):
     query_str = "SELECT * FROM \"User\""
     params = {}
@@ -46,6 +39,13 @@ async def list_users(status: Optional[str] = None, db: AsyncSession = Depends(ge
         params["s"] = status
     result = await db.execute(text(query_str), params)
     return result.mappings().all()
+
+@router.get("/{user_id}", response_model=UserRead)
+async def read_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.get(User, user_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="User not found")
+    return result
 
 @router.put("/{user_id}", response_model=UserRead)
 async def update_user(user_id: int, user: UserUpdate, db: AsyncSession = Depends(get_db)):
@@ -58,4 +58,3 @@ async def update_user(user_id: int, user: UserUpdate, db: AsyncSession = Depends
     await db.commit()
     await db.refresh(db_user)
     return db_user
-

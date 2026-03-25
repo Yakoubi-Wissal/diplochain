@@ -5,7 +5,15 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getNetworkStatus, getChannels, getTransactions, getLogs, getStats } from "../services/fabricApi";
+import {
+  getNetworkStatus,
+  getChannels,
+  getTransactions,
+  getLogs,
+  getStats,
+  getStabilityMetrics,
+  getStabilityHistory
+} from "../services/fabricApi";
 
 // ─── Hook générique avec polling ──────────────────────────────────────
 function useFabricData(fetcher, pollInterval = null) {
@@ -68,3 +76,11 @@ export const useFabricLogs = () => {
 /** Statistiques globales — polling toutes les 5s */
 export const useFabricStats = () =>
   useFabricData(useCallback(() => getStats(), []), 5000);
+
+/** Métriques de stabilité — polling toutes les 30s */
+export const useStabilityStats = () =>
+  useFabricData(useCallback(() => getStabilityMetrics(), []), 30000);
+
+/** Historique de stabilité */
+export const useStabilityHistory = () =>
+  useFabricData(useCallback(() => getStabilityHistory(), []), 60000);

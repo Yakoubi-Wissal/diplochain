@@ -547,6 +547,26 @@ services:
       postgres:
         condition: service_healthy
 
+  security-scan-service:
+    build: ./backend/app/v2/security-scan-service
+    container_name: diplochain_v2_security_scan
+    networks:
+      - diplochain-network
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+      analytics-service:
+        condition: service_healthy
+
+  self-healing-agent:
+    build: ./backend/app/v2/self-healing-agent
+    container_name: diplochain_v2_self_healing
+    networks:
+      - diplochain-network
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+
 networks:
   diplochain-network:
     driver: bridge

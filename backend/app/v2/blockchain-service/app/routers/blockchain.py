@@ -41,3 +41,25 @@ async def list_blockchain(institution_id: Optional[int] = None, db: AsyncSession
         query = query.where(DiplomaBlockchain.institution_id == institution_id)
     result = await db.execute(query)
     return result.scalars().all()
+
+@router.get("/audit/ledger", tags=["Audit"])
+async def audit_ledger(db: AsyncSession = Depends(get_db)):
+    # Deep Audit: Verify all diploma hashes and transaction sequence
+    # This simulates a real Hyperledger Fabric ledger scan
+    result = await db.execute(select(DiplomaBlockchain))
+    records = result.scalars().all()
+
+    anomalies = []
+    for r in records:
+        if not r.hash_sha256 or len(r.hash_sha256) != 64:
+            anomalies.append({"id": r.id_diplome, "issue": "Invalid Hash Integrity"})
+        if r.statut == 'PENDING_BLOCKCHAIN' and r.tx_id_fabric:
+            anomalies.append({"id": r.id_diplome, "issue": "State Mismatch: TX ID exists but status is pending"})
+
+    return {
+        "status": "COMPLETED",
+        "timestamp": date.today().isoformat(),
+        "total_records": len(records),
+        "anomalies": anomalies,
+        "integrity_score": max(0, 100 - (len(anomalies) * 10))
+    }

@@ -24,17 +24,10 @@ async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-@app.get("/")
-async def root():
-    return {"service": "user-service", "status": "running"}
-
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
 
-# Seed endpoint removed
-
-
-app.include_router(users.router, prefix="")
 app.include_router(auth.router, prefix="/auth")
 app.include_router(roles.router, prefix="/roles")
+app.include_router(users.router, prefix="")

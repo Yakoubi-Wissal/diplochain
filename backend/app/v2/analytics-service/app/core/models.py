@@ -28,3 +28,12 @@ class StudentStatistics(Base):
     stat_id = Column(Integer, primary_key=True, autoincrement=True)
     student_id = Column(Integer)
     nb_diplomas = Column(Integer)
+
+class StabilityHistory(Base):
+    __tablename__ = "stability_history"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    timestamp = Column(DateTime, server_default=func.now())
+    stability = Column(Numeric(5, 2))
+    security = Column(Numeric(5, 2))
+    network = Column(Numeric(5, 2))
+    anomaly = Column(Numeric(5, 2))

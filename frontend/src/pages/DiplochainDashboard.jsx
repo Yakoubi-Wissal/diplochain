@@ -3,7 +3,9 @@ import {
   useFabricNetwork, 
   useFabricChannels, 
   useFabricTransactions, 
-  useFabricStats 
+  useFabricStats,
+  useStabilityStats,
+  useStabilityHistory
 } from '../hooks/useFabric';
 import { C } from '../components/dashboard/DashboardTokens';
 import { injectStyles, Dot, Toast } from '../components/dashboard/UIPrimitives';
@@ -34,6 +36,8 @@ export default function DiplochainDashboard() {
   const { data: channels, loading: chLoading, refresh: chRefresh } = useFabricChannels();
   const { data: transactions, loading: txLoading } = useFabricTransactions();
   const { data: stats } = useFabricStats();
+  const { data: stability } = useStabilityStats();
+  const { data: history } = useStabilityHistory();
 
   const TABS = [
     { id: "smart",        label: "Smart Dashboard", icon: "🚀" },
@@ -47,7 +51,7 @@ export default function DiplochainDashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "smart":        return <SmartBoard stats={stats} onToast={showToast} addLog={addLog} />;
+      case "smart":        return <SmartBoard stats={stats} stability={stability} history={history} onToast={showToast} addLog={addLog} />;
       case "network":      return <NetworkPanel network={network} loading={netLoading} onRefresh={netRefresh} />;
       case "channels":     return <ChannelList channels={channels} loading={chLoading} onCreated={chRefresh} onToast={showToast} />;
       case "transactions": return <TransactionLedger transactions={transactions} loading={txLoading} onToast={showToast} />;
