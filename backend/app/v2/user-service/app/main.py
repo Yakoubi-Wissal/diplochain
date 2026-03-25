@@ -35,6 +35,6 @@ async def health():
 # Seed endpoint removed
 
 
-app.include_router(users.router, prefix="")
+app.include_router(users.router, prefix="/users")
 app.include_router(auth.router, prefix="/auth")
 app.include_router(roles.router, prefix="/roles")

@@ -21,10 +21,11 @@ jobs:
           # We check one service as a representative sample
           cd backend/app/v2/user-service
           pip install -r requirements.txt
-          pip install pytest httpx
+          pip install pytest pytest-asyncio pytest-env httpx aiosqlite pydantic-settings email-validator python-jose[cryptography]
       - name: Run tests
         run: |
           cd backend/app/v2/user-service
+          export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/app
           pytest
 
   frontend-build:
@@ -35,16 +36,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install pnpm
-        run: npm install -g pnpm
       - name: Install dependencies
         run: |
-          cd frontend
-          pnpm install
+          cd audit-dashboard
+          npm install
       - name: Build frontend
         run: |
-          cd frontend
-          pnpm build
+          cd audit-dashboard
+          npm run build
 
   docker-build:
     needs: [backend-test, frontend-build]
