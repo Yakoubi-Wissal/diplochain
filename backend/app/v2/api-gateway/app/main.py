@@ -4,7 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import jwt
 import os
+import time
+import json
+import logging
 from typing import Optional
+
+# Setup logging for anomalies
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("api-gateway")
 
 app = FastAPI(
     title="DiploChain API Gateway",
@@ -75,6 +82,22 @@ SERVICE_MAP = {
     "qr-validation-service": "http://qr-validation-service:8000",
 }
 
+@app.middleware("http")
+async def monitor_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+
+    # Simple anomaly detection: log if request takes too long
+    if process_time > 2.0:
+        logger.warning(f"ANOMALY: Slow request to {request.url.path} took {process_time:.2f}s")
+
+    # Log errors
+    if response.status_code >= 400:
+        logger.error(f"ANOMALY: Request to {request.url.path} failed with status {response.status_code}")
+
+    return response
+
 @app.api_route("/api/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def proxy(service: str, path: str, request: Request):
     # 1. Check if path is public
@@ -128,6 +151,7 @@ async def proxy(service: str, path: str, request: Request):
         )
 
 @app.get("/discovery")
+@app.get("/api/discovery")
 async def discovery():
     import asyncio
     async def get_service_status(client, service, url):

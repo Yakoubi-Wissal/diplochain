@@ -155,6 +155,29 @@ export const generateReport = async (type, format = "json") => {
   return fetchWithTimeout(`${BASE_URL}/api/fabric/reports/${type}?format=json`, { headers: getHeaders() });
 };
 
+export const getStabilityHistory = async () => {
+  if (MOCK) {
+    await delay(200);
+    return [
+      { timestamp: "2026-03-25T10:00:00", stability: 94, security: 88, network: 99, anomaly: 92 },
+      { timestamp: "2026-03-25T11:00:00", stability: 95, security: 88, network: 99, anomaly: 94 },
+    ];
+  }
+  return fetchWithTimeout(`${BASE_URL}/api/analytics/metrics/stability/history`, { headers: getHeaders() });
+};
+
+/** Récupérer les scores de stabilité */
+export const getStabilityMetrics = async () => {
+  if (MOCK) {
+    await delay(200);
+    return {
+      stability: 94.5, security: 88.0, network: 99.2, anomaly: 92.0,
+      recommendations: ["Upgrade user-service dependency 'httpx' to 0.27+", "Enable IPFS garbage collection to save 2.4GB"]
+    };
+  }
+  return fetchWithTimeout(`${BASE_URL}/api/analytics/metrics/stability`, { headers: getHeaders() });
+};
+
 
 export const createStudent = async (data) => {
   return fetchWithTimeout(`${BASE_URL}/api/students/`, {

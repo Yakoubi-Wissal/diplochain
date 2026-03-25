@@ -28,7 +28,7 @@ class User(Base):
     tokentype = Column(String(50))
     revoked = Column(Boolean)
     expired = Column(Boolean)
-    email = Column(String(255), unique=True)
+    email = Column(String(255), unique=True, index=True)
     reset_code = Column(String(255))
     verificationtoken_expiration = Column(DateTime)
     reset_code_expiration = Column(DateTime)

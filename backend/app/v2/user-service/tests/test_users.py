@@ -2,19 +2,26 @@ import sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
 import pytest
+import uuid
 from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
 from app.main import app
 
+from core.database import engine, Base
+
 @pytest.mark.asyncio
 async def test_user_crud():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        payload = {"email": "foo@bar.com", "password": "secret"}
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", follow_redirects=True) as client:
+        email = f"user_{uuid.uuid4().hex[:8]}@test.com"
+        payload = {"email": email, "password": "secret"}
         r = await client.post("/users/", json=payload)
         assert r.status_code == status.HTTP_201_CREATED
         data = r.json()
-        assert data["email"] == "foo@bar.com"
+        assert data["email"] == email
         uid = data["id_user"]
 
         r2 = await client.get(f"/users/{uid}")
