@@ -16,12 +16,20 @@ from httpx import AsyncClient, ASGITransport
 from fastapi import status
 
 from app.main import app
+from core.database import engine, Base
 
 @pytest.mark.asyncio
 async def test_health_and_metrics():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/health")
         assert r.status_code == status.HTTP_200_OK
 
-        r2 = await client.get("/analytics/metrics/daily")
+        r2 = await client.get("/metrics/daily")
         assert r2.status_code == status.HTTP_200_OK
+
+        r3 = await client.get("/metrics/realtime")
+        assert r3.status_code == 200
+        assert "stability_score" in r3.json()

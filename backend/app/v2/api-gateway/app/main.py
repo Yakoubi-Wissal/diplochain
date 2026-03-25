@@ -4,7 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import jwt
 import os
+import time
+import logging
 from typing import Optional
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("gateway-monitor")
 
 app = FastAPI(
     title="DiploChain API Gateway",
@@ -77,6 +83,7 @@ SERVICE_MAP = {
 
 @app.api_route("/api/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def proxy(service: str, path: str, request: Request):
+    start_time = time.time()
     # 1. Check if path is public
     full_path = f"/api/{service}/{path}"
     match_path = full_path.rstrip("/")
@@ -99,14 +106,23 @@ async def proxy(service: str, path: str, request: Request):
     url = f"{base}/{url_path}"
     
     async with httpx.AsyncClient() as client:
-        resp = await client.request(
-            request.method,
-            url,
-            headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
-            content=await request.body(),
-            params=request.query_params,
-        )
+        try:
+            resp = await client.request(
+                request.method,
+                url,
+                headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
+                content=await request.body(),
+                params=request.query_params,
+            )
+        except Exception as e:
+            duration = time.time() - start_time
+            logger.error(f"Proxy error: {service}/{path} - {str(e)} - {duration:.4f}s")
+            # Potential for automated alerting here
+            raise HTTPException(status_code=502, detail="Upstream service unavailable")
         
+        duration = time.time() - start_time
+        logger.info(f"Proxy log: {service}/{path} - {resp.status_code} - {duration:.4f}s")
+
         content_type = resp.headers.get("content-type", "")
         headers = {k: v for k, v in resp.headers.items() if k.lower() not in ["content-length", "content-encoding"]}
         

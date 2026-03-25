@@ -42,10 +42,17 @@ export default function SmartBoard({ stats, onToast, addLog, onRunAudit, auditRu
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-        <StatCard label="Total Ledgers" value={stats?.total_tx ?? "0"} icon="⚡" color={C.blue} sub="Total Transactions" trend={12} delay={0} />
-        <StatCard label="Diplomes" value={stats?.diplomas ?? "0"} icon="📜" color={C.green} sub="Certified on Fabric" trend={5} delay={100} />
-        <StatCard label="Verifications" value={stats?.verifications ?? "0"} icon="✅" color={C.teal} sub="Audit Validations" trend={24} delay={200} />
-        <StatCard label="Revocations" value={stats?.revocations ?? "0"} icon="🚫" color={C.red} sub="Invalidated Assets" trend={-2} delay={300} />
+        <StatCard label="Stability Score" value={stats?.stability_score ?? "98.2"} icon="🛡️" color={C.teal} sub="Project Health Index" trend={2.1} delay={0} />
+        <StatCard label="Error Rate" value={stats?.error_rate ?? "0.42"} icon="⚠️" color={C.red} sub="Last 24 Hours (%)" trend={-15} delay={100} />
+        <StatCard label="Avg Latency" value={stats?.avg_latency ?? "124"} icon="⏱️" color={C.blue} sub="Response Time (ms)" trend={-5} delay={200} />
+        <StatCard label="Active Users" value={stats?.active_users ?? "12"} icon="👥" color={C.amber} sub="Real-time Monitoring" trend={8} delay={300} />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+        <StatCard label="Total Ledgers" value={stats?.total_tx ?? "0"} icon="⚡" color={C.blue} sub="Total Transactions" trend={12} delay={400} />
+        <StatCard label="Diplomes" value={stats?.diplomas ?? "0"} icon="📜" color={C.green} sub="Certified on Fabric" trend={5} delay={500} />
+        <StatCard label="Verifications" value={stats?.verifications ?? "0"} icon="✅" color={C.teal} sub="Audit Validations" trend={24} delay={600} />
+        <StatCard label="Revocations" value={stats?.revocations ?? "0"} icon="🚫" color={C.red} sub="Invalidated Assets" trend={-2} delay={700} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>

@@ -1,36 +1,474 @@
 {
-  "project_name": "DiploChain V2",
-  "status": "Production-Ready / PFE Submission Ready",
-  "last_audit_date": "2026-03-24",
-  "version": "1.5.0",
-  "components": {
-    "frontend": "Active (React 18)",
-    "backend": "Active (Node.js 20)",
-    "blockchain": "Active (Fabric 2.5)",
-    "database": "Connected (PostgreSQL 15)"
-  },
-  "fixed_issues": [
-    "Critical 500 error on stats/reporting endpoints (SQL Schema mismatch)",
-    "ReferenceError on 'stats' and 'useFabricNetwork' in Dashboard",
-    "Chaincode runtime panic due to Go pointer handling (Fixed in CC v1.3)",
-    "Fabric container connectivity for peer certificates",
-    "Missing reporting endpoints (Implemented activity/security/project reports)"
-  ],
-  "features_validated": [
-    "Dynamic Stats (Total TX, Diplomas, etc.)",
-    "Blockchain Action: RegisterDiploma",
-    "Blockchain Action: VerifyDiploma",
-    "Blockchain Action: RevokeDiploma",
-    "Audit Export: JSON and PDF generation",
-    "Real-time Logs monitoring"
-  ],
-  "risk_assessment": "Low. System is stable and all dependencies are pinned to specific versions.",
-  "final_docs": [
-    "README.md",
-    "DOCUMENTATION.md",
-    "API.md",
-    "ARCHITECTURE.md",
-    "BLOCKCHAIN.md",
-    "DOCUMENTATION_FR.md"
-  ]
+    "credentials": [
+        {
+            "type": "password",
+            "value": "Admin@1234",
+            "file": "./fix_password.sh",
+            "line": 3
+        },
+        {
+            "type": "password",
+            "value": "$HASH",
+            "file": "./fix_password.sh",
+            "line": 8
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./fix_password.sh",
+            "line": 9
+        },
+        {
+            "type": "email",
+            "value": "contact@esprit.tn",
+            "file": "./fix_password.sh",
+            "line": 9
+        },
+        {
+            "type": "email",
+            "value": "student1@esprit.tn",
+            "file": "./fix_password.sh",
+            "line": 9
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./test_login.py",
+            "line": 9
+        },
+        {
+            "type": "password",
+            "value": "admin",
+            "file": "./.env.example",
+            "line": 5
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./fix_login.py",
+            "line": 13
+        },
+        {
+            "type": "email",
+            "value": "contact@esprit.tn",
+            "file": "./fix_login.py",
+            "line": 13
+        },
+        {
+            "type": "email",
+            "value": "student1@esprit.tn",
+            "file": "./fix_login.py",
+            "line": 13
+        },
+        {
+            "type": "password",
+            "value": "{h_escaped}",
+            "file": "./fix_login.py",
+            "line": 13
+        },
+        {
+            "type": "password",
+            "value": "str)",
+            "file": "./cleanup_duplicates.py",
+            "line": 9
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./cleanup_duplicates.py",
+            "line": 23
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./cleanup_duplicates.py",
+            "line": 27
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./cleanup_duplicates.py",
+            "line": 38
+        },
+        {
+            "type": "password",
+            "value": "\\$2b\\$12\\$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+            "file": "./seed_and_fix.sh",
+            "line": 16
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./seed_and_fix.sh",
+            "line": 17
+        },
+        {
+            "type": "email",
+            "value": "contact@esprit.tn",
+            "file": "./seed_and_fix.sh",
+            "line": 17
+        },
+        {
+            "type": "email",
+            "value": "student1@esprit.tn",
+            "file": "./seed_and_fix.sh",
+            "line": 17
+        },
+        {
+            "type": "email",
+            "value": "Admin@diplochain.local",
+            "file": "./fix_all.sh",
+            "line": 17
+        },
+        {
+            "type": "password",
+            "value": "]+:([^",
+            "file": "./auto_fix_and_report.py",
+            "line": 36
+        },
+        {
+            "type": "password",
+            "value": "Admin@1234",
+            "file": "./verify_hash.py",
+            "line": 3
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./gen_hash.py",
+            "line": 4
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./gen_hash.py",
+            "line": 5
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./gen_hash.py",
+            "line": 6
+        },
+        {
+            "type": "password",
+            "value": "{pw}",
+            "file": "./gen_hash.py",
+            "line": 14
+        },
+        {
+            "type": "password",
+            "value": "Admin@1234",
+            "file": "./gen_fresh_hash.py",
+            "line": 3
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./create_admin.py",
+            "line": 36
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./create_admin.py",
+            "line": 47
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./create_admin.py",
+            "line": 59
+        },
+        {
+            "type": "password",
+            "value": "diplochain_pass",
+            "file": "./docker-compose.yml",
+            "line": 8
+        },
+        {
+            "type": "password",
+            "value": "diplochain_couch_2025",
+            "file": "./docker-compose.yml",
+            "line": 104
+        },
+        {
+            "type": "password",
+            "value": "diplochain_couch_2025",
+            "file": "./docker-compose.yml",
+            "line": 137
+        },
+        {
+            "type": "email",
+            "value": "Admin@diplochain.local",
+            "file": "./docker-compose.yml",
+            "line": 146
+        },
+        {
+            "type": "password",
+            "value": "diplochain_pass",
+            "file": "./docker-compose.yml",
+            "line": 224
+        },
+        {
+            "type": "email",
+            "value": "diplochain_couch_2025@couchdb0.diplochain.local",
+            "file": "./docker-compose.yml",
+            "line": 228
+        },
+        {
+            "type": "email",
+            "value": "Admin@diplochain.local",
+            "file": "./redeploy_chaincode.sh",
+            "line": 35
+        },
+        {
+            "type": "email",
+            "value": "admin@diplochain.tn",
+            "file": "./backend/database/seed_data.sql",
+            "line": 16
+        },
+        {
+            "type": "email",
+            "value": "contact@esprit.tn",
+            "file": "./backend/database/seed_data.sql",
+            "line": 17
+        },
+        {
+            "type": "email",
+            "value": "student1@esprit.tn",
+            "file": "./backend/database/seed_data.sql",
+            "line": 18
+        },
+        {
+            "type": "email",
+            "value": "contact@esprit.tn",
+            "file": "./backend/database/seed_data.sql",
+            "line": 32
+        },
+        {
+            "type": "email",
+            "value": "contact@utunis.tn",
+            "file": "./backend/database/seed_data.sql",
+            "line": 33
+        },
+        {
+            "type": "email",
+            "value": "student1@esprit.tn",
+            "file": "./backend/database/seed_data.sql",
+            "line": 61
+        },
+        {
+            "type": "password",
+            "value": "diplochain_pass",
+            "file": "./backend/app/docker-compose.dev.yml",
+            "line": 8
+        },
+        {
+            "type": "email",
+            "value": "contact@test.edu",
+            "file": "./backend/app/v2/institution-service/tests/test_institutions.py",
+            "line": 26
+        },
+        {
+            "type": "password",
+            "value": "Optional[str]",
+            "file": "./backend/app/v2/user-service/app/core/schemas.py",
+            "line": 30
+        },
+        {
+            "type": "password",
+            "value": "str)",
+            "file": "./backend/app/v2/user-service/app/core/security.py",
+            "line": 7
+        },
+        {
+            "type": "password",
+            "value": "str,",
+            "file": "./backend/app/v2/user-service/app/core/security.py",
+            "line": 13
+        },
+        {
+            "type": "password",
+            "value": "Column(String(120))",
+            "file": "./backend/app/v2/user-service/app/core/models.py",
+            "line": 26
+        },
+        {
+            "type": "email",
+            "value": "foo@bar.com",
+            "file": "./backend/app/v2/user-service/tests/test_users.py",
+            "line": 17
+        },
+        {
+            "type": "email",
+            "value": "foo@bar.com",
+            "file": "./backend/app/v2/user-service/tests/test_users.py",
+            "line": 21
+        },
+        {
+            "type": "password",
+            "value": "${COUCHDB_PASSWORD:-diplochain_couch_2025}",
+            "file": "./fabric-network/docker-compose.fabric.yml",
+            "line": 95
+        },
+        {
+            "type": "password",
+            "value": "${COUCHDB_PASSWORD:-diplochain_couch_2025}",
+            "file": "./fabric-network/docker-compose.fabric.yml",
+            "line": 134
+        },
+        {
+            "type": "email",
+            "value": "Admin@diplochain.local",
+            "file": "./fabric-network/docker-compose.fabric.yml",
+            "line": 143
+        },
+        {
+            "type": "email",
+            "value": "Admin@diplochain.local",
+            "file": "./fabric-network/scripts/create-channel.sh",
+            "line": 50
+        },
+        {
+            "type": "email",
+            "value": "Admin@orderer.diplochain.local",
+            "file": "./fabric-network/scripts/create-channel.sh",
+            "line": 54
+        },
+        {
+            "type": "email",
+            "value": "Admin@orderer.diplochain.local",
+            "file": "./fabric-network/scripts/create-channel.sh",
+            "line": 55
+        },
+        {
+            "type": "email",
+            "value": "Admin@diplochain.local",
+            "file": "./fabric-network/scripts/create-channel.sh",
+            "line": 108
+        },
+        {
+            "type": "email",
+            "value": "superadmin@diplochain.com",
+            "file": "./tests/integration/test_login.py",
+            "line": 4
+        },
+        {
+            "type": "password",
+            "value": "securepassword123",
+            "file": "./tests/integration/test_full_flow.py",
+            "line": 13
+        },
+        {
+            "type": "password",
+            "value": "secretpassword",
+            "file": "./tests/integration/test_security.py",
+            "line": 12
+        }
+    ],
+    "services": {
+        "institution-service": {
+            "path": "/backend/app/v2/institution-service",
+            "status": "Failing",
+            "test_output": "=============\nFAILED tests/test_health.py::test_health - AssertionError: assert 'healthy' =...\nFAILED tests/test_institutions.py::test_create_and_get_institution - assert 3...\nFAILED tests/test_institutions.py::test_list_institutions_filter - assert 307...\nFAILED tests/test_integration.py::test_health - httpx.ConnectError: All conne...\nFAILED tests/test_integration.py::test_create_institution - httpx.ConnectErro...\n======================== 5 failed, 2 warnings in 1.57s =========================\n"
+        },
+        "verification-service": {
+            "path": "/backend/app/v2/verification-service",
+            "status": "Failing",
+            "test_output": "i.tiangolo.com/advanced/events/).\n          \n    return self.router.on_event(event_type)  # ty: ignore[deprecated]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_health.py::test_health - AssertionError: assert {'status': ...\nFAILED tests/test_verify.py::test_qr_and_history - assert 404 == 200\n======================== 2 failed, 2 warnings in 1.05s =========================\n"
+        },
+        "qr-validation-service": {
+            "path": "/backend/app/v2/qr-validation-service",
+            "status": "Failing",
+            "test_output": "t_type)  # ty: ignore[deprecated]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_qr.py::test_health - AssertionError: assert {'status': 'hea...\nFAILED tests/test_qr.py::test_qr_verify_valid_diploma - assert 404 == 200\nFAILED tests/test_qr.py::test_qr_verify_invalid_diploma - assert 404 == 200\n======================== 3 failed, 2 warnings in 1.08s =========================\n"
+        },
+        "diploma-service": {
+            "path": "/backend/app/v2/diploma-service",
+            "status": "Failing",
+            "test_output": "-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_diplomas.py::test_diploma_crud - assert 307 == 200\nFAILED tests/test_health.py::test_health - AssertionError: assert {'status': ...\nFAILED tests/test_integration.py::test_health - httpx.ConnectError: All conne...\nFAILED tests/test_integration.py::test_create_diploma - httpx.ConnectError: A...\n======================== 4 failed, 2 warnings in 1.56s =========================\n"
+        },
+        "user-service": {
+            "path": "/backend/app/v2/user-service",
+            "status": "Failing",
+            "test_output": "=============\nFAILED tests/test_health.py::test_health - AssertionError: assert 'healthy' =...\nFAILED tests/test_integration.py::test_health - httpx.ConnectError: All conne...\nFAILED tests/test_integration.py::test_create_user - httpx.ConnectError: All ...\nFAILED tests/test_integration.py::test_list_users - httpx.ConnectError: All c...\nFAILED tests/test_integration.py::test_create_role - httpx.ConnectError: All ...\n=================== 5 failed, 2 passed, 2 warnings in 2.58s ====================\n"
+        },
+        "api-gateway": {
+            "path": "/backend/app/v2/api-gateway",
+            "status": "Failing",
+            "test_output": "============================= test session starts ==============================\nplatform linux -- Python 3.12.13, pytest-9.0.2, pluggy-1.6.0\nrootdir: /app/backend\nconfigfile: pytest.ini\nplugins: env-1.6.0, asyncio-1.3.0, anyio-4.13.0\nasyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollected 0 items\n\n============================ no tests ran in 0.02s =============================\n"
+        },
+        "entreprise-service": {
+            "path": "/backend/app/v2/entreprise-service",
+            "status": "Failing",
+            "test_output": "om/advanced/events/).\n          \n    return self.router.on_event(event_type)  # ty: ignore[deprecated]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_entreprises.py::test_entreprise_operations - httpx.ConnectE...\nFAILED tests/test_health.py::test_health - AssertionError: assert {'status': ...\n======================== 2 failed, 2 warnings in 1.35s =========================\n"
+        },
+        "blockchain-service": {
+            "path": "/backend/app/v2/blockchain-service",
+            "status": "Failing",
+            "test_output": ".com/advanced/events/).\n          \n    return self.router.on_event(event_type)  # ty: ignore[deprecated]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_blockchain.py::test_blockchain_endpoints - assert 404 == 200\nFAILED tests/test_health.py::test_health - AssertionError: assert {'status': ...\n======================== 2 failed, 2 warnings in 1.06s =========================\n"
+        },
+        "pdf-generator-service": {
+            "path": "/backend/app/v2/pdf-generator-service",
+            "status": "Failing",
+            "test_output": "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_generator.py:14: in <module>\n    from app.main import app\napp/main.py:6: in <module>\n    from reportlab.pdfgen import canvas\nE   ModuleNotFoundError: No module named 'reportlab'\n=========================== short test summary info ============================\nERROR tests/test_generator.py\n!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n=============================== 1 error in 0.74s ===============================\n"
+        },
+        "storage-service": {
+            "path": "/backend/app/v2/storage-service",
+            "status": "Failing",
+            "test_output": "it in the\n          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).\n          \n    return self.router.on_event(event_type)  # ty: ignore[deprecated]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_health.py::test_health - AssertionError: assert {'status': ...\n=================== 1 failed, 1 passed, 2 warnings in 1.06s ====================\n"
+        },
+        "admin-dashboard-service": {
+            "path": "/backend/app/v2/admin-dashboard-service",
+            "status": "Failing",
+            "test_output": "aise AttributeError(\nE   AttributeError: <module 'core.database' from '/app/backend/app/v2/admin-dashboard-service/app/core/database.py'> does not have the attribute 'init_db'\n=========================== short test summary info ============================\nERROR tests/test_dashboard.py - AttributeError: <module 'core.database' from ...\n!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n=============================== 1 error in 0.88s ===============================\n"
+        },
+        "notification-service": {
+            "path": "/backend/app/v2/notification-service",
+            "status": "Failing",
+            "test_output": "om/advanced/events/).\n          \n    return self.router.on_event(event_type)  # ty: ignore[deprecated]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_health.py::test_health - AssertionError: assert {'status': ...\nFAILED tests/test_notifications.py::test_notification_operations - assert 307...\n======================== 2 failed, 2 warnings in 1.07s =========================\n"
+        },
+        "student-service": {
+            "path": "/backend/app/v2/student-service",
+            "status": "Failing",
+            "test_output": "pture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_health.py::test_health - AssertionError: assert {'status': ...\nFAILED tests/test_integration.py::test_health - httpx.ConnectError: All conne...\nFAILED tests/test_integration.py::test_create_student - httpx.ConnectError: A...\nFAILED tests/test_students.py::test_student_operations - assert 307 == 201\n======================== 4 failed, 2 warnings in 2.19s =========================\n"
+        },
+        "document-service": {
+            "path": "/backend/app/v2/document-service",
+            "status": "Failing",
+            "test_output": "om/advanced/events/).\n          \n    return self.router.on_event(event_type)  # ty: ignore[deprecated]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_documents.py::test_rapport_operations - httpx.ConnectError:...\nFAILED tests/test_health.py::test_health - AssertionError: assert {'status': ...\n======================== 2 failed, 2 warnings in 2.69s =========================\n"
+        },
+        "analytics-service": {
+            "path": "/backend/app/v2/analytics-service",
+            "status": "Failing",
+            "test_output": "it in the\n          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).\n          \n    return self.router.on_event(event_type)  # ty: ignore[deprecated]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_health.py::test_health - AssertionError: assert {'status': ...\n=================== 1 failed, 1 passed, 2 warnings in 1.04s ====================\n"
+        },
+        "retry-worker-service": {
+            "path": "/backend/app/v2/retry-worker-service",
+            "status": "No Tests",
+            "test_output": "N/A"
+        },
+        "audit-dashboard": {
+            "path": "/audit-dashboard",
+            "status": "Checked for Hardcoded Data",
+            "dynamic": true
+        }
+    },
+    "fixes_applied": [
+        "Detected failure in institution-service, attempted to isolate tests.",
+        "Detected failure in verification-service, attempted to isolate tests.",
+        "Detected failure in qr-validation-service, attempted to isolate tests.",
+        "Detected failure in diploma-service, attempted to isolate tests.",
+        "Detected failure in user-service, attempted to isolate tests.",
+        "Detected failure in api-gateway, attempted to isolate tests.",
+        "Detected failure in entreprise-service, attempted to isolate tests.",
+        "Detected failure in blockchain-service, attempted to isolate tests.",
+        "Detected failure in pdf-generator-service, attempted to isolate tests.",
+        "Detected failure in storage-service, attempted to isolate tests.",
+        "Detected failure in admin-dashboard-service, attempted to isolate tests.",
+        "Detected failure in notification-service, attempted to isolate tests.",
+        "Detected failure in student-service, attempted to isolate tests.",
+        "Detected failure in document-service, attempted to isolate tests.",
+        "Detected failure in analytics-service, attempted to isolate tests."
+    ]
 }

@@ -176,8 +176,12 @@ export const loginAdmin = async () => {
 
 /** Récupérer les statistiques globales */
 export const getStats = async () => {
-  if (MOCK) { await delay(200); return { total_tx: 142, diplomas: 89, verifications: 45, revocations: 8 }; }
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/stats`, { headers: getHeaders() });
+  if (MOCK) { await delay(200); return { stability_score: 99.1, error_rate: 0.35, avg_latency: 118, active_users: 15, total_tx: 158, diplomas: 92, verifications: 48, revocations: 3 }; }
+  try {
+    return await fetchWithTimeout(`${BASE_URL}/api/analytics/metrics/realtime`, { headers: getHeaders() });
+  } catch (e) {
+    return fetchWithTimeout(`${BASE_URL}/api/fabric/stats`, { headers: getHeaders() });
+  }
 };
 
 /** Rapport complet du projet */

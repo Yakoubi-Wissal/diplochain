@@ -47,7 +47,7 @@ def scan_credentials(base_dir):
 
 def get_services():
     services = []
-    v2_dir = "/home/wissal/diplochain/backend/app/v2"
+    v2_dir = "backend/app/v2"
     if os.path.exists(v2_dir):
         for sdir in os.listdir(v2_dir):
             if os.path.isdir(os.path.join(v2_dir, sdir)) and ('service' in sdir or 'gateway' in sdir):
@@ -62,18 +62,19 @@ def main():
     }
     
     print("Scanning project for credentials...")
-    report["credentials"] = scan_credentials("/home/wissal/diplochain")
+    report["credentials"] = scan_credentials(".")
     
     print("Detecting backend services...")
     services = get_services()
     
     # We will pretend to fix them or just run tests to see their state
-    v2_base = "/home/wissal/diplochain/backend/app/v2"
+    v2_base = "backend/app/v2"
     for service in services:
         print(f"Testing {service}...")
         test_dir = f"{v2_base}/{service}/tests"
         if os.path.exists(test_dir):
-            out, err, code = run_command(f"../../../venv/bin/pytest", cwd=f"{v2_base}/{service}")
+            # Using current python to run pytest if available, or just try running pytest
+            out, err, code = run_command(f"pytest tests", cwd=f"{v2_base}/{service}")
             status = "Functional" if code == 0 else "Failing"
             report["services"][service] = {
                 "path": f"/backend/app/v2/{service}",
@@ -97,10 +98,10 @@ def main():
     }
     
     # Output to JSON
-    with open("/home/wissal/diplochain/report_full_project.json", 'w') as f:
+    with open("report_full_project.json", 'w') as f:
         json.dump(report, f, indent=4)
         
-    print("Report generated at /home/wissal/diplochain/report_full_project.json")
+    print("Report generated at report_full_project.json")
 
 if __name__ == '__main__':
     main()
