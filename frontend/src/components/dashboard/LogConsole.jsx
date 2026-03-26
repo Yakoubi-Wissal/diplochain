@@ -35,13 +35,13 @@ export default function LogConsole({ initialLogs = [] }) {
     return () => clearInterval(id);
   }, [live, mode]);
 
+  const currentLogs = mode === "fabric" ? logs : auditEvents;
+
   useEffect(() => {
     if (live && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [currentLogs, live]);
-
-  const currentLogs = mode === "fabric" ? logs : auditEvents;
 
   return (
     <Card icon="⬛" title={mode === "fabric" ? "Fabric Node Logs (Docker)" : "System Audit Events (Real-time)"} action={

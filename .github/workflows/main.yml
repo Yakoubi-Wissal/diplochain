@@ -18,16 +18,25 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # We check one service as a representative sample
-          cd backend/app/v2/user-service
-          pip install -r requirements.txt
-          pip install pytest httpx pytest-asyncio pytest-env aiosqlite
-      - name: Run tests
+          # Install core testing tools
+          pip install pytest pytest-asyncio pytest-env aiosqlite httpx fastapi sqlalchemy pydantic-settings email-validator "python-jose[cryptography]" bcrypt passlib python-multipart
+          # Install dependencies for all V2 services for integration test scope
+          for d in backend/app/v2/*/; do
+            if [ -f "$d/requirements.txt" ]; then
+              pip install -r "$d/requirements.txt"
+            fi
+          done
+      - name: Run Backend Tests (User & Analytics Services)
         env:
-          DATABASE_URL: sqlite+aiosqlite:///:memory:
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
-          cd backend/app/v2/user-service
-          pytest
+          # Run tests for user-service
+          export PYTHONPATH=$(pwd)/backend/app/v2/user-service:$(pwd)/backend/app/v2/user-service/app
+          pytest backend/app/v2/user-service/tests
+
+          # Run tests for analytics-service
+          export PYTHONPATH=$(pwd)/backend/app/v2/analytics-service:$(pwd)/backend/app/v2/analytics-service/app
+          python -m pytest -o "asyncio_mode=auto" backend/app/v2/analytics-service/tests
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -37,16 +46,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install pnpm
-        run: npm install -g pnpm
       - name: Install dependencies
         run: |
           cd frontend
-          pnpm install
+          npm install
       - name: Build frontend
         run: |
           cd frontend
-          pnpm build
+          npm run build
 
   docker-build:
     needs: [backend-test, frontend-build]
