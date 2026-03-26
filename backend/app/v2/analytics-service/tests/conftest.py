@@ -1,78 +1,40 @@
+import pytest_asyncio
 import sys
 import pathlib
-import pytest
-import asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+import os
 
-# Put service root/app on sys.path
-service_root = pathlib.Path(__file__).parent.parent
-app_pkg = service_root / "app"
-if str(app_pkg) not in sys.path:
-    sys.path.insert(0, str(app_pkg))
-
-# remove conflicting modules
+# Absolute isolation: purge ALL modules that might collide
 for name in list(sys.modules):
-    if name in ["routers", "core"] or name.startswith(("routers.", "core.")):
+    if any(p in name for p in ["routers", "core", "main", "app"]):
         del sys.modules[name]
 
-# Import using the same style as the app
-from core.database import Base
-import core.models
+# Set up paths for this specific service
+service_root = pathlib.Path(__file__).parent.parent
+app_pkg = service_root / "app"
+
+# Remove any other microservice paths from sys.path
+sys.path = [p for p in sys.path if "backend/app/v2" not in p]
+
+if str(app_pkg) not in sys.path:
+    sys.path.insert(0, str(app_pkg))
+if str(service_root) not in sys.path:
+    sys.path.insert(0, str(service_root))
+
+from core.database import engine, Base
 from main import app
-import routers.analytics as analytics_router
 
-# Use a persistent file for SQLite
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_analytics.db"
-
-test_engine = create_async_engine(TEST_DATABASE_URL, echo=False, future=True)
-TestAsyncSessionLocal = async_sessionmaker(
-    test_engine,
-    class_=AsyncSession,
-    expire_on_commit=False
-)
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-@pytest.fixture(scope="session", autouse=True)
-async def create_test_db():
-    import os
-    if os.path.exists("./test_analytics.db"):
-        os.remove("./test_analytics.db")
-
-    async with test_engine.begin() as conn:
-        # Debug: print tables being created
-        # print(f"Creating tables: {Base.metadata.tables.keys()}")
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def setup_db():
+    if True:
+        import core.models
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
-    if os.path.exists("./test_analytics.db"):
-        os.remove("./test_analytics.db")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
-async def override_get_db():
-    async with TestAsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
-
-app.dependency_overrides[analytics_router.get_db] = override_get_db
-
-from contextlib import asynccontextmanager
-@asynccontextmanager
-async def mock_lifespan(app):
-    yield
-app.router.lifespan_context = mock_lifespan
-
-@pytest.fixture
-async def client():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        yield ac
-
-@pytest.fixture
-async def db_session():
-    async with TestAsyncSessionLocal() as session:
-        yield session
+    # Cleanup
+    db_file = "./test_analytics_service.db"
+    if os.path.exists(db_file):
+        try: os.remove(db_file)
+        except: pass

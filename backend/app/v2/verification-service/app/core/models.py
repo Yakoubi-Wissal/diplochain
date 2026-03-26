@@ -1,10 +1,11 @@
 from sqlalchemy import (
     Column, Integer, String, DateTime, ForeignKey
 )
-from core.database import Base
+from .database import Base
 
 class QrCodeRecord(Base):
     __tablename__ = "qr_code_records"
+    __table_args__ = {'extend_existing': True}
 
     qr_code_records_id = Column(Integer, primary_key=True, autoincrement=True)
     diplome_id = Column(Integer, nullable=False)
@@ -17,6 +18,7 @@ class QrCodeRecord(Base):
 # this service may also insert into historique_operations when a verification occurs
 class HistoriqueOperation(Base):
     __tablename__ = "historique_operations"
+    __table_args__ = {'extend_existing': True}
 
     historique_operations_id = Column(Integer, primary_key=True, autoincrement=True)
     diplome_id = Column(Integer, nullable=False)

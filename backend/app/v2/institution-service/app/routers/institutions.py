@@ -17,7 +17,7 @@ async def get_db():
 async def health():
     return {"status": "ok"}
 
-@router.post("/", response_model=InstitutionRead)
+@router.post("/", response_model=InstitutionRead, status_code=201)
 async def create_institution(inst: InstitutionCreate, db: AsyncSession = Depends(get_db)):
     db_inst = Institution(**inst.model_dump())
     db.add(db_inst)

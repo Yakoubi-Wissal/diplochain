@@ -27,19 +27,19 @@ async def test_diploma_crud():
             "hash_sha256": "abc",
             "ipfs_cid": "cid123",
             "etudiant_id": "E1",
-            "institution_id": "I1",
-            "uploaded_by": "U1",
+            "institution_id": 1,
+            "uploaded_by": 1,
         }
-        r = await client.post("/diplomas/", json=payload)
+        r = await client.post("/", json=payload)
         assert r.status_code == status.HTTP_200_OK
         data = r.json()
         assert data["titre"] == "D1"
-        did = data["id"]
+        did = data["id_diplome"]
 
-        r2 = await client.get(f"/diplomas/{did}")
+        r2 = await client.get(f"/{did}")
         assert r2.status_code == status.HTTP_200_OK
-        assert r2.json()["id"] == did
+        assert r2.json()["id_diplome"] == did
 
-        r3 = await client.post(f"/diplomas/{did}/revoke")
+        r3 = await client.post(f"/{did}/revoke")
         assert r3.status_code == status.HTTP_200_OK
         assert r3.json()["statut"] == "REVOQUE"

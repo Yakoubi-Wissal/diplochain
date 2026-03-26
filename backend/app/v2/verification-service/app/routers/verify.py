@@ -18,7 +18,10 @@ async def health():
 
 @router.post("/qr", response_model=QrCodeRecordRead)
 async def create_qr(record: QrCodeRecordBase, db: AsyncSession = Depends(get_db)):
-    qr = QrCodeRecord(**record.model_dump(), created_at=datetime.utcnow())
+    data = record.model_dump()
+    if not data.get("created_at"):
+        data["created_at"] = datetime.utcnow()
+    qr = QrCodeRecord(**data)
     db.add(qr)
     await db.commit()
     await db.refresh(qr)
@@ -41,7 +44,10 @@ async def verify_diploma_from_services(diploma_id: int):
 
 @router.post("/history", response_model=HistoriqueOperationRead)
 async def record_history(entry: HistoriqueOperationRead, db: AsyncSession = Depends(get_db)):
-    h = HistoriqueOperation(**entry.model_dump())
+    data = entry.model_dump()
+    if not data.get("timestamp"):
+        data["timestamp"] = datetime.utcnow()
+    h = HistoriqueOperation(**data)
     db.add(h)
     await db.commit()
     await db.refresh(h)

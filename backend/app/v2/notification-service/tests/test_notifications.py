@@ -23,10 +23,10 @@ async def test_notification_operations():
             "type_notification": "EMAIL",
             "message": "Welcome to DiploChain!"
         }
-        r = await client.post("/notifications/", json=payload)
+        r = await client.post("/", json=payload)
         assert r.status_code == status.HTTP_201_CREATED
         assert r.json()["message"] == "Welcome to DiploChain!"
 
-        r2 = await client.get("/notifications/user/99")
+        r2 = await client.get("/user/99")
         assert r2.status_code == 200
         assert len(r2.json()) > 0

@@ -1,7 +1,7 @@
 from sqlalchemy import (
     Column, Integer, String, Date, Numeric, DateTime, func
 )
-from core.database import Base
+from .database import Base
 
 class DiplomaBlockchain(Base):
     __tablename__ = "diplome_blockchain_ext"
@@ -15,7 +15,7 @@ class DiplomaBlockchain(Base):
     tx_id_fabric = Column(String(255))
     ipfs_cid = Column(String(100))
     statut = Column(String(50))
-    blockchain_retry_count = Column(Integer)
+    blockchain_retry_count = Column(Integer, default=0)
     blockchain_last_retry = Column(DateTime)
     generation_mode = Column(String(20))
     template_id = Column(Integer)
@@ -23,4 +23,4 @@ class DiplomaBlockchain(Base):
     specialite_id = Column(String(3))
     uploaded_by = Column(Integer)
     created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())

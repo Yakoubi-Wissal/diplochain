@@ -20,7 +20,11 @@ async def health():
 
 @router.post("/diplome", response_model=DiplomaBlockchainRead)
 async def record_blockchain(d: DiplomaBlockchainCreate, db: AsyncSession = Depends(get_db)):
-    obj = DiplomaBlockchain(**d.model_dump())
+    data = d.model_dump()
+    # Remove fields that might be handled by DB defaults if they are None in input
+    if data.get("created_at") is None:
+        data.pop("created_at", None)
+    obj = DiplomaBlockchain(**data)
     db.add(obj)
     await db.commit()
     await db.refresh(obj)

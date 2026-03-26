@@ -6,9 +6,28 @@ on:
   pull_request:
     branches: [ main, master ]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
-  backend-test:
+  discovery:
     runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set-services.outputs.services }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-services
+        run: |
+          SERVICES=$(find backend/app/v2 -maxdepth 2 -name "tests" -type d | cut -d'/' -f1-4 | sort -u | jq -R -s -c 'split("\n")[:-1]')
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
+
+  backend-test:
+    needs: discovery
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.discovery.outputs.services) }}
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -18,15 +37,15 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # We check one service as a representative sample
-          cd backend/app/v2/user-service
-          pip install -r requirements.txt
-          pip install pytest httpx pytest-asyncio pytest-env aiosqlite
+          cd ${{ matrix.service }}
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest httpx pytest-asyncio pytest-env aiosqlite sqlalchemy pydantic-settings email-validator python-jose[cryptography] bcrypt passlib python-multipart reportlab
       - name: Run tests
         env:
           DATABASE_URL: sqlite+aiosqlite:///:memory:
+          PYTHONPATH: .:${{ matrix.service }}:${{ matrix.service }}/app
         run: |
-          cd backend/app/v2/user-service
+          cd ${{ matrix.service }}
           pytest
 
   frontend-build:
@@ -36,17 +55,18 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - name: Install pnpm
-        run: npm install -g pnpm
+          node-version: '24'
       - name: Install dependencies
+        working-directory: frontend
         run: |
-          cd frontend
-          pnpm install
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
       - name: Build frontend
-        run: |
-          cd frontend
-          pnpm build
+        working-directory: frontend
+        run: npm run build
 
   docker-build:
     needs: [backend-test, frontend-build]

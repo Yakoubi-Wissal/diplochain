@@ -18,13 +18,41 @@ async def get_db():
 async def health():
     return {"status": "ok"}
 
-@router.post("/", response_model=StudentRead)
+@router.post("/", response_model=StudentRead, status_code=201)
 async def create_student(student: StudentCreate, db: AsyncSession = Depends(get_db)):
     db_student = Student(**student.model_dump())
     db.add(db_student)
     await db.commit()
     await db.refresh(db_student)
     return db_student
+
+@router.get("/search", response_model=list[StudentRead])
+async def search_students(
+    nom: Optional[str] = None,
+    prenom: Optional[str] = None,
+    email_etudiant: Optional[str] = None,
+    institution_id: Optional[int] = None,
+    db: AsyncSession = Depends(get_db),
+):
+    query_str = "SELECT * FROM etudiant"
+    clauses = []
+    params = {}
+    if nom:
+        clauses.append("nom LIKE :nom")
+        params["nom"] = f"%{nom}%"
+    if prenom:
+        clauses.append("prenom LIKE :prenom")
+        params["prenom"] = f"%{prenom}%"
+    if email_etudiant:
+        clauses.append("email_etudiant LIKE :email_etudiant")
+        params["email_etudiant"] = f"%{email_etudiant}%"
+    if institution_id:
+        clauses.append("institution_id = :institution_id")
+        params["institution_id"] = institution_id
+    if clauses:
+        query_str += " WHERE " + " AND ".join(clauses)
+    result = await db.execute(text(query_str), params)
+    return result.mappings().all()
 
 @router.get("/{etudiant_id}", response_model=StudentRead)
 async def read_student(etudiant_id: str, db: AsyncSession = Depends(get_db)):

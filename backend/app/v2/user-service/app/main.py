@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.database import engine, Base
+import core.models
 
 from routers import users, auth, roles
 
@@ -30,4 +31,4 @@ async def health():
 
 app.include_router(auth.router, prefix="/auth")
 app.include_router(roles.router, prefix="/roles")
-app.include_router(users.router, prefix="")
+app.include_router(users.router, prefix="/users")

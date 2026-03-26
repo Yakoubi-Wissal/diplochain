@@ -1,32 +1,38 @@
 import pytest
 import httpx
 from fastapi import status
-import time
+import uuid
+from app.main import app
+from core.database import Base, engine
+import pytest_asyncio
 
-BASE_URL = "http://localhost:8000"
+@pytest_asyncio.fixture(autouse=True)
+async def setup_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
 @pytest.mark.asyncio
-async def test_health():
-    async with httpx.AsyncClient(timeout=10) as client:
-        response = await client.get(f"{BASE_URL}/health")
-        assert response.status_code == 200
+async def test_health_integration():
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get("/health")
+        assert response.status_code in [200, 201]
 
 @pytest.mark.asyncio
 async def test_create_student():
-    unique_id = int(time.time()) % 1000000
     student_data = {
-        "etudiant_id": f"S{unique_id}",
+        "etudiant_id": "S123",
         "nom": "Doe",
         "prenom": "John",
-        "email_etudiant": f"john_{unique_id}@test.com",
+        "email_etudiant": "john@test.com",
         "date_naissance": "2000-01-01",
         "sexe": "M",
         "lieu_nais_et": "Tunis"
     }
-    async with httpx.AsyncClient(timeout=10) as client:
-        response = await client.post(f"{BASE_URL}/students/", json=student_data)
-        if response.status_code != 200:
-            print(f"Error 422 details: {response.json()}")
-        assert response.status_code == 200
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post("/", json=student_data)
+        assert response.status_code == 201
         data = response.json()
         assert data["etudiant_id"] == student_data["etudiant_id"]

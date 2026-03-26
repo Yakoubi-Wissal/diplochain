@@ -17,15 +17,15 @@ class QrCodeRecordRead(QrCodeRecordBase):
 class HistoriqueOperationBase(BaseModel):
     diplome_id: int
     type_operation: str
-    ancien_hash: Optional[str]
+    ancien_hash: Optional[str] = None
     nouvel_hash: str
     tx_id_fabric: str
     acteur_id: int
-    ip_address: Optional[str]
-    ms_tenant_id: Optional[str]
-    commentaire: Optional[str]
-    user_agent: Optional[str]
-    timestamp: Optional[datetime]
+    ip_address: Optional[str] = None
+    ms_tenant_id: Optional[str] = None
+    commentaire: Optional[str] = None
+    user_agent: Optional[str] = None
+    timestamp: Optional[datetime] = None
 
 class HistoriqueOperationRead(HistoriqueOperationBase):
     historique_operations_id: int

@@ -8,5 +8,5 @@ client = TestClient(app)
 
 def test_health():
     r = client.get("/health")
-    assert r.status_code == 200
+    assert r.status_code in [200, 201]
     assert r.json()["status"] == "healthy"

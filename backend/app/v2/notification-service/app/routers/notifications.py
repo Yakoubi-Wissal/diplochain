@@ -17,7 +17,7 @@ async def get_db():
 async def health():
     return {"status": "ok"}
 
-@router.post("/", response_model=NotificationRead)
+@router.post("/", response_model=NotificationRead, status_code=201)
 async def create_notification(notification: NotificationCreate, db: AsyncSession = Depends(get_db)):
     db_notification = Notification(**notification.model_dump())
     db.add(db_notification)
