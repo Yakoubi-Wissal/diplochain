@@ -1,18 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { C } from './DashboardTokens';
 import { Card, DCButton, Dot } from './UIPrimitives';
-import { getLogs } from '../../services/fabricApi';
+import { getLogs, getAuditEvents } from '../../services/fabricApi';
 
 export default function LogConsole({ initialLogs = [] }) {
   const [live, setLive] = useState(true);
+  const [mode, setMode] = useState("fabric"); // "fabric" or "audit"
   const [logs, setLogs] = useState(initialLogs);
+  const [auditEvents, setAuditEvents] = useState([]);
   const bottomRef = useRef(null);
-  const LEVEL_COLORS = { INFO: C.teal, WARN: C.amber, ERROR: C.red, DEBU: C.violet };
+  const LEVEL_COLORS = { INFO: C.teal, WARN: C.amber, WARNING: C.amber, ERROR: C.red, CRITICAL: C.red, DEBU: C.violet };
 
   const fetchLogs = async () => {
      try {
-       const newLogs = await getLogs(40);
-       setLogs(newLogs);
+       if (mode === "fabric") {
+         const newLogs = await getLogs(40);
+         setLogs(newLogs);
+       } else {
+         const events = await getAuditEvents(40);
+         setAuditEvents(events.map(e => ({
+           t: e.timestamp,
+           level: e.severity,
+           src: e.service,
+           msg: `${e.event_type}: ${e.details}`
+         })));
+       }
      } catch(e) {/* ignore */}
   };
 
@@ -21,17 +33,23 @@ export default function LogConsole({ initialLogs = [] }) {
     fetchLogs();
     const id = setInterval(fetchLogs, 5000);
     return () => clearInterval(id);
-  }, [live]);
+  }, [live, mode]);
 
   useEffect(() => {
     if (live && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [logs, live]);
+  }, [currentLogs, live]);
+
+  const currentLogs = mode === "fabric" ? logs : auditEvents;
 
   return (
-    <Card icon="⬛" title="Fabric Node Logs (Docker)" action={
+    <Card icon="⬛" title={mode === "fabric" ? "Fabric Node Logs (Docker)" : "System Audit Events (Real-time)"} action={
       <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ background: C.bg, borderRadius: 8, padding: 4, display: "flex", gap: 4, marginRight: 12 }}>
+           <DCButton variant={mode === "fabric" ? "primary" : "ghost"} small onClick={() => setMode("fabric")} data-testid="fabric-toggle">Fabric</DCButton>
+           <DCButton variant={mode === "audit" ? "primary" : "ghost"} small onClick={() => setMode("audit")} data-testid="audit-toggle">Audit</DCButton>
+        </div>
         <DCButton variant={live ? "danger" : "success"} small onClick={() => setLive(!live)} icon={live ? "⏸" : "▶"}>
           {live ? "Pause" : "Resume"}
         </DCButton>
@@ -42,7 +60,7 @@ export default function LogConsole({ initialLogs = [] }) {
         padding: "12px 0", overflowY: "auto", fontFamily: C.mono, fontSize: 12, lineHeight: 1.8,
         display: "flex", flexDirection: "column"
       }}>
-        {logs.map((log, i) => (
+        {currentLogs.map((log, i) => (
           <div key={i} className="dc-row" style={{ 
             padding: "2px 18px", display: "flex", gap: 14, 
             animation: i === logs.length - 1 ? "dc-fadein 0.2s ease" : "none" 

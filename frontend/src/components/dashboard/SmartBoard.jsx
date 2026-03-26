@@ -38,6 +38,13 @@ export default function SmartBoard({ stats, stability, history, onToast, addLog,
     }
   };
 
+  const stabilityItems = [
+    { label: "System Stability", val: stability?.stability || 0, color: C.green, sub: "Based on 0 critical crashes" },
+    { label: "Security Integrity", val: stability?.security || 0, color: C.blue, sub: `${100 - (stability?.security || 100)}% vulnerability risk` },
+    { label: "Network Health", val: stability?.network || 0, color: C.teal, sub: "Latency < 50ms" },
+    { label: "Anomaly Score", val: stability?.anomaly || 0, color: C.amber, sub: `${100 - (stability?.anomaly || 100)}% anomaly probability` },
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
@@ -64,12 +71,7 @@ export default function SmartBoard({ stats, stability, history, onToast, addLog,
 
         <Card icon="📊" title="Stability & Security Score" action={<Badge text="Real-time" color={C.teal} />}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-             {[
-               { label: "System Stability", val: stability?.stability || 0, color: C.green, sub: "Based on 0 critical crashes" },
-               { label: "Security Integrity", val: stability?.security || 0, color: C.blue, sub: "3 potential vulnerabilities detected" },
-               { label: "Network Health", val: stability?.network || 0, color: C.teal, sub: "Latency < 50ms" },
-               { label: "Anomaly Score", val: stability?.anomaly || 0, color: C.amber, sub: "0 suspicious activities" },
-             ].map((m, i) => (
+             {stabilityItems.map((m, i) => (
                <div key={m.label}>
                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12, fontWeight: 600 }}>
                    <span style={{ color: C.textSec }}>{m.label}</span>
