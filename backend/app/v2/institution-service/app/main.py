@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
@@ -5,11 +6,17 @@ from core.database import engine, Base
 
 from routers import institutions
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 app = FastAPI(
     title="institution-service",
     description="DiploChain Institution Service",
     version="1.0.0"
-)
+, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,10 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+
 
 @app.get("/")
 async def root():

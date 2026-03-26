@@ -1,23 +1,22 @@
-import sys, pathlib
-# adjust path so this service's root and its app package are first
-service_root = pathlib.Path(__file__).parent.parent
-app_folder = service_root / "app"
-for p in (service_root, app_folder):
-    sp = str(p)
-    if sp not in sys.path:
-        sys.path.insert(0, sp)
-# remove conflicting modules from earlier services
-for name in list(sys.modules):
-    if name == "routers" or name.startswith("routers.") or name == "core" or name.startswith("core."):
-        del sys.modules[name]
-
 import pytest
-import httpx
-
-BASE_URL = "http://localhost:8000"
+from fastapi import status
 
 @pytest.mark.asyncio
-async def test_rapport_operations():
-    async with httpx.AsyncClient(timeout=10) as client:
-        r = await client.get(f"{BASE_URL}/rapports/")
-        assert r.status_code == 200
+async def test_rapport_operations(client):
+    # Testing GET /api/ which should return a list of rapports
+    r = await client.get("/api/")
+    assert r.status_code == status.HTTP_200_OK
+    assert isinstance(r.json(), list)
+
+    # Test creating a rapport
+    payload = {
+        "nom_documents": "Test Doc",
+        "id_langue": 1,
+        "id_type_impression": 1,
+        "id_annee": 2025,
+        "etat": True,
+        "code_rapport": "R-123"
+    }
+    r2 = await client.post("/api/", json=payload)
+    assert r2.status_code == status.HTTP_200_OK
+    assert r2.json()["code_rapport"] == "R-123"

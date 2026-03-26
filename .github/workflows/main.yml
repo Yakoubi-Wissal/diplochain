@@ -19,24 +19,26 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           # Install core testing tools
-          pip install pytest pytest-asyncio pytest-env aiosqlite httpx fastapi sqlalchemy pydantic-settings email-validator "python-jose[cryptography]" bcrypt passlib python-multipart
-          # Install dependencies for all V2 services for integration test scope
+          pip install pytest pytest-asyncio pytest-env aiosqlite httpx fastapi sqlalchemy pydantic-settings email-validator "python-jose[cryptography]" bcrypt passlib python-multipart reportlab
+          # Install dependencies for all V2 services
           for d in backend/app/v2/*/; do
             if [ -f "$d/requirements.txt" ]; then
               pip install -r "$d/requirements.txt"
             fi
           done
-      - name: Run Backend Tests (User & Analytics Services)
+      - name: Run Backend Tests (ALL V2 Microservices)
         env:
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         run: |
-          # Run tests for user-service
-          export PYTHONPATH=$(pwd)/backend/app/v2/user-service:$(pwd)/backend/app/v2/user-service/app
-          pytest backend/app/v2/user-service/tests
-
-          # Run tests for analytics-service
-          export PYTHONPATH=$(pwd)/backend/app/v2/analytics-service:$(pwd)/backend/app/v2/analytics-service/app
-          python -m pytest -o "asyncio_mode=auto" backend/app/v2/analytics-service/tests
+          # Automatically detect and test every V2 service with a 'tests' folder
+          for d in backend/app/v2/*; do
+            if [ -d "$d/tests" ]; then
+              echo "Testing service: $d"
+              # Ensure standard imports by setting PYTHONPATH to service root and its 'app' directory
+              export PYTHONPATH=$(pwd)/$d:$(pwd)/$d/app
+              python -m pytest -o "asyncio_mode=auto" $d/tests
+            fi
+          done
 
   frontend-build:
     runs-on: ubuntu-latest

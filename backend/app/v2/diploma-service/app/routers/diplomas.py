@@ -17,7 +17,7 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.post("/", response_model=DiplomaRead)
 async def create_diploma(d: DiplomaCreate, db: AsyncSession = Depends(get_db)):

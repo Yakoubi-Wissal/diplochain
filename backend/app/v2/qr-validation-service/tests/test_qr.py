@@ -11,25 +11,24 @@ for name in list(sys.modules):
 
 import pytest
 import hashlib
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from httpx import AsyncClient, ASGITransport
-from app.main import app
+
+from main import app
+import routers.validation as validation_router
 
 @pytest.mark.asyncio
 async def test_health():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/health")
         assert r.status_code == 200
-        assert r.json() == {"status": "ok"}
+        assert r.json() == {"status": "healthy"}
 
 @pytest.mark.asyncio
 async def test_qr_verify_valid_diploma():
-    """Test that a diploma with matching hashes is validated correctly."""
-    # Compute the SHA-256 of the fake PDF bytes we'll return
     fake_pdf = b"%PDF-FAKE-CONTENT"
     expected_hash = hashlib.sha256(fake_pdf).hexdigest()
 
-    # Mock blockchain response returns the expected hash
     mock_bc_response = MagicMock()
     mock_bc_response.status_code = 200
     mock_bc_response.json.return_value = {
@@ -38,28 +37,31 @@ async def test_qr_verify_valid_diploma():
         "status": "ORIGINAL"
     }
 
-    # Mock IPFS response returns the same PDF bytes
     mock_ipfs_response = MagicMock()
     mock_ipfs_response.status_code = 200
     mock_ipfs_response.content = fake_pdf
 
-    # Create a mock HTTP client that returns these mocked responses
     mock_http_client = AsyncMock()
     mock_http_client.get = AsyncMock(side_effect=[mock_bc_response, mock_ipfs_response])
 
-    with patch("httpx.AsyncClient", return_value=mock_http_client):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            r = await client.get("/verify/opaque_diploma_001")
-            assert r.status_code == 200
-            data = r.json()
-            assert "is_valid" in data
-            assert data["identifiant_opaque"] == "opaque_diploma_001"
+    # Dependency override instead of patch
+    async def override_get_http_client():
+        yield mock_http_client
+
+    app.dependency_overrides[validation_router.get_http_client] = override_get_http_client
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await client.get("/verify/opaque_diploma_001")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["is_valid"] is True
+
+    app.dependency_overrides.clear()
 
 @pytest.mark.asyncio
 async def test_qr_verify_invalid_diploma():
-    """Test that tampered diploma is detected (hash mismatch)."""
     fake_pdf = b"%PDF-TAMPERED"
-    wrong_hash = "a" * 64  # Some wrong hash
+    wrong_hash = "a" * 64
 
     mock_bc_response = MagicMock()
     mock_bc_response.status_code = 200
@@ -67,6 +69,7 @@ async def test_qr_verify_invalid_diploma():
         "hash_sha256": wrong_hash,
         "ipfs_cid": "QmFakeCID456",
     }
+
     mock_ipfs_response = MagicMock()
     mock_ipfs_response.status_code = 200
     mock_ipfs_response.content = fake_pdf
@@ -74,9 +77,15 @@ async def test_qr_verify_invalid_diploma():
     mock_http_client = AsyncMock()
     mock_http_client.get = AsyncMock(side_effect=[mock_bc_response, mock_ipfs_response])
 
-    with patch("httpx.AsyncClient", return_value=mock_http_client):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            r = await client.get("/verify/opaque_tampered_001")
-            assert r.status_code == 200
-            data = r.json()
-            assert data["is_valid"] is False
+    async def override_get_http_client():
+        yield mock_http_client
+
+    app.dependency_overrides[validation_router.get_http_client] = override_get_http_client
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        r = await client.get("/verify/opaque_tampered_001")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["is_valid"] is False
+
+    app.dependency_overrides.clear()

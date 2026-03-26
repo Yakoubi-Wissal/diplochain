@@ -18,7 +18,7 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.post("/files", response_model=IPFSFileRead)
 async def create_file(rec: IPFSFileCreate, db: AsyncSession = Depends(get_db)):

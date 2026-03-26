@@ -4,7 +4,7 @@ from datetime import datetime
 
 from core.database import AsyncSessionLocal
 from core.models import QrCodeRecord, HistoriqueOperation
-from core.schemas import QrCodeRecordRead, QrCodeRecordBase, HistoriqueOperationRead
+from core.schemas import QrCodeRecordRead, QrCodeRecordBase, HistoriqueOperationRead, HistoriqueOperationBase
 
 router = APIRouter(prefix="", tags=["Verify"])
 
@@ -14,11 +14,14 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.post("/qr", response_model=QrCodeRecordRead)
 async def create_qr(record: QrCodeRecordBase, db: AsyncSession = Depends(get_db)):
-    qr = QrCodeRecord(**record.model_dump(), created_at=datetime.utcnow())
+    data = record.model_dump()
+    if data.get('created_at') is None:
+        data['created_at'] = datetime.utcnow()
+    qr = QrCodeRecord(**data)
     db.add(qr)
     await db.commit()
     await db.refresh(qr)
@@ -40,8 +43,11 @@ async def verify_diploma_from_services(diploma_id: int):
     return {"blockchain": bc_resp.json()}
 
 @router.post("/history", response_model=HistoriqueOperationRead)
-async def record_history(entry: HistoriqueOperationRead, db: AsyncSession = Depends(get_db)):
-    h = HistoriqueOperation(**entry.model_dump())
+async def record_history(entry: HistoriqueOperationBase, db: AsyncSession = Depends(get_db)):
+    data = entry.model_dump()
+    if data.get('timestamp') is None:
+        data['timestamp'] = datetime.utcnow()
+    h = HistoriqueOperation(**data)
     db.add(h)
     await db.commit()
     await db.refresh(h)

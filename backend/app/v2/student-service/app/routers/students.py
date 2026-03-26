@@ -16,7 +16,7 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.post("/", response_model=StudentRead)
 async def create_student(student: StudentCreate, db: AsyncSession = Depends(get_db)):
@@ -26,16 +26,9 @@ async def create_student(student: StudentCreate, db: AsyncSession = Depends(get_
     await db.refresh(db_student)
     return db_student
 
-@router.get("/{etudiant_id}", response_model=StudentRead)
-async def read_student(etudiant_id: str, db: AsyncSession = Depends(get_db)):
-    student = await db.get(Student, etudiant_id)
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-    return student
-
 @router.get("/search", response_model=list[StudentRead])
 async def search_students(
-    nom: Optional[str] = None, 
+    nom: Optional[str] = None,
     prenom: Optional[str] = None,
     email_etudiant: Optional[str] = None,
     institution_id: Optional[int] = None,
@@ -44,14 +37,19 @@ async def search_students(
     query_str = "SELECT * FROM etudiant"
     clauses = []
     params = {}
+
+    # Check if we are using SQLite or Postgres for LIKE/ILIKE
+    dialect = db.get_bind().dialect.name
+    like_op = "ILIKE" if dialect == "postgresql" else "LIKE"
+
     if nom:
-        clauses.append("nom ILIKE :nom")
+        clauses.append(f"nom {like_op} :nom")
         params["nom"] = f"%{nom}%"
     if prenom:
-        clauses.append("prenom ILIKE :prenom")
+        clauses.append(f"prenom {like_op} :prenom")
         params["prenom"] = f"%{prenom}%"
     if email_etudiant:
-        clauses.append("email_etudiant ILIKE :email_etudiant")
+        clauses.append(f"email_etudiant {like_op} :email_etudiant")
         params["email_etudiant"] = f"%{email_etudiant}%"
     if institution_id:
         clauses.append("institution_id = :institution_id")
@@ -60,3 +58,10 @@ async def search_students(
         query_str += " WHERE " + " AND ".join(clauses)
     result = await db.execute(text(query_str), params)
     return result.mappings().all()
+
+@router.get("/{etudiant_id}", response_model=StudentRead)
+async def read_student(etudiant_id: str, db: AsyncSession = Depends(get_db)):
+    student = await db.get(Student, etudiant_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student

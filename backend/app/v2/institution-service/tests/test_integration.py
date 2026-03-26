@@ -1,18 +1,18 @@
 import pytest
-import httpx
-from fastapi import status
+from httpx import AsyncClient, ASGITransport
 import time
 
-BASE_URL = "http://localhost:8000"
+# The app is imported via PYTHONPATH which points to 'app' directory
+from main import app
 
 @pytest.mark.asyncio
-async def test_health():
-    async with httpx.AsyncClient(timeout=10) as client:
-        response = await client.get(f"{BASE_URL}/health")
-        assert response.status_code == 200
+async def test_health(client):
+    r = await client.get("/health")
+    assert r.status_code == 200
+    assert r.json() == {"status": "healthy"}
 
 @pytest.mark.asyncio
-async def test_create_institution():
+async def test_create_institution(client):
     unique_id = int(time.time())
     inst_data = {
         "nom_institution": f"Test University {unique_id}",
@@ -21,11 +21,9 @@ async def test_create_institution():
         "adresse": "123 Test St",
         "pays": "Tunisia"
     }
-    async with httpx.AsyncClient(timeout=10) as client:
-        response = await client.post(f"{BASE_URL}/institutions/", json=inst_data)
-        if response.status_code != 200:
-            print(f"Error 422 details: {response.json()}")
-        assert response.status_code == 200 # Based on institutions.py
-        data = response.json()
-        assert data["nom_institution"] == inst_data["nom_institution"]
-        assert "institution_id" in data
+    # Router included at root, so use "/" instead of "/institutions/"
+    response = await client.post("/", json=inst_data)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["nom_institution"] == inst_data["nom_institution"]
+    assert "institution_id" in data

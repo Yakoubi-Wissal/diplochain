@@ -15,7 +15,7 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.post("/", response_model=EntrepriseRead)
 async def create_entreprise(entreprise: EntrepriseCreate, db: AsyncSession = Depends(get_db)):
@@ -37,14 +37,10 @@ async def search_entreprises(
     nom_entreprise: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ):
-    query_str = "SELECT * FROM entreprise"
-    clauses = []
-    params = {}
+    from sqlalchemy import select
+    query = select(Entreprise)
     if nom_entreprise:
-        clauses.append("nom_entreprise ILIKE :nom")
-        params["nom"] = f"%{nom_entreprise}%"
+        query = query.where(Entreprise.nom_entreprise.ilike(f"%{nom_entreprise}%"))
     
-    if clauses:
-        query_str += " WHERE " + " AND ".join(clauses)
-    result = await db.execute(text(query_str), params)
-    return result.mappings().all()
+    result = await db.execute(query)
+    return result.scalars().all()

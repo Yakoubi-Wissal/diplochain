@@ -19,7 +19,7 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.post("/", response_model=RapportRead)
 async def create_rapport(rapport: RapportCreate, db: AsyncSession = Depends(get_db)):
