@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text, select
+from sqlalchemy import text, select, func
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from core.database import AsyncSessionLocal
-from core.models import DashboardMetricsDaily, InstitutionStatistics, StudentStatistics, StabilityHistory
-from core.schemas import DashboardMetricsRead, StabilityScoreRead
+from core.models import DashboardMetricsDaily, InstitutionStatistics, StudentStatistics, StabilityHistory, AuditEvent
+from core.schemas import DashboardMetricsRead, StabilityScoreRead, AuditEventCreate, AuditEventRead
 
 router = APIRouter(prefix="", tags=["Analytics"])
 logger = logging.getLogger("analytics-service")
@@ -21,28 +21,40 @@ async def health():
 
 @router.get("/metrics/daily", response_model=list[DashboardMetricsRead])
 async def list_daily_metrics(db: AsyncSession = Depends(get_db)):
-    from sqlalchemy import select
     result = await db.execute(select(DashboardMetricsDaily))
     return result.scalars().all()
 
 @router.get("/metrics/stability/history")
 async def get_stability_history(db: AsyncSession = Depends(get_db)):
-    from sqlalchemy import select
     result = await db.execute(select(StabilityHistory).order_by(StabilityHistory.timestamp.desc()).limit(10))
+    return result.scalars().all()
+
+@router.post("/events", response_model=AuditEventRead)
+async def create_audit_event(event: AuditEventCreate, db: AsyncSession = Depends(get_db)):
+    db_event = AuditEvent(**event.dict())
+    db.add(db_event)
+    await db.commit()
+    await db.refresh(db_event)
+    return db_event
+
+@router.get("/events", response_model=list[AuditEventRead])
+async def list_audit_events(limit: int = 50, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(AuditEvent).order_by(AuditEvent.timestamp.desc()).limit(limit))
     return result.scalars().all()
 
 @router.post("/security/scan")
 async def receive_security_scan(scan: dict, db: AsyncSession = Depends(get_db)):
-    # Process scan findings and update security scores
     findings = scan.get('findings', [])
     num_findings = len(findings)
-    logger.info(f"Received security scan findings: {num_findings}")
 
-    # Simple heuristic for scores
     security_score = max(0, 100 - (num_findings * 10))
-    stability_score = 95.0 # Placeholder
-    network_score = 98.0   # Placeholder
-    anomaly_score = 90.0   # Placeholder
+    stability_score = 95.0
+    network_score = 98.0
+
+    # Anomaly score based on recent non-INFO events
+    event_count_result = await db.execute(select(func.count(AuditEvent.id)).where(AuditEvent.severity != "INFO"))
+    event_count = event_count_result.scalar()
+    anomaly_score = max(0, 100 - (event_count * 5))
 
     new_history = StabilityHistory(
         stability=stability_score,
@@ -57,9 +69,43 @@ async def receive_security_scan(scan: dict, db: AsyncSession = Depends(get_db)):
 
 @router.get("/metrics/stability", response_model=StabilityScoreRead)
 async def get_stability_metrics(db: AsyncSession = Depends(get_db)):
-    # Fetch the latest metrics from history
+    # 1. Fetch latest raw scores
     result = await db.execute(select(StabilityHistory).order_by(StabilityHistory.timestamp.desc()).limit(1))
     latest = result.scalar_one_or_none()
+
+    # 2. Rule-based "AI" Recommendations
+    recommendations = []
+
+    # Check for brute force (many login failures in last hour)
+    one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    login_fails = await db.execute(select(func.count(AuditEvent.id)).where(
+        AuditEvent.event_type == "LOGIN_FAILED",
+        AuditEvent.timestamp >= one_hour_ago
+    ))
+    if login_fails.scalar() > 5:
+        recommendations.append("Potential brute force attack detected on user-service")
+
+    # Check for service instability (frequent auto-heals)
+    auto_heals = await db.execute(select(func.count(AuditEvent.id)).where(
+        AuditEvent.event_type == "AUTO_FIX_SUCCESS",
+        AuditEvent.timestamp >= one_hour_ago
+    ))
+    if auto_heals.scalar() > 2:
+        recommendations.append("Frequent service instability detected; auto-healing triggered multiple times")
+
+    # Check for upload failures
+    upload_fails = await db.execute(select(func.count(AuditEvent.id)).where(
+        AuditEvent.event_type == "FILE_UPLOAD_FAILURE",
+        AuditEvent.timestamp >= one_hour_ago
+    ))
+    if upload_fails.scalar() > 0:
+        recommendations.append("Storage service experiencing upload failures; check IPFS node connectivity")
+
+    if not recommendations:
+        if latest and latest.security < 100:
+            recommendations.append("Apply missing security headers to improve integrity score")
+        else:
+            recommendations.append("System is performing within optimal parameters")
 
     if latest:
         return {
@@ -67,17 +113,10 @@ async def get_stability_metrics(db: AsyncSession = Depends(get_db)):
             "security": float(latest.security),
             "network": float(latest.network),
             "anomaly": float(latest.anomaly),
-            "recommendations": [
-                "Upgrade user-service dependency 'httpx' to 0.27+",
-                "Enable IPFS garbage collection to save 2.4GB"
-            ]
+            "recommendations": recommendations
         }
 
-    # Default if no history yet
     return {
-        "stability": 100.0,
-        "security": 100.0,
-        "network": 100.0,
-        "anomaly": 100.0,
-        "recommendations": ["System initialized. Waiting for first scan..."]
+        "stability": 100.0, "security": 100.0, "network": 100.0, "anomaly": 100.0,
+        "recommendations": ["Initializing monitoring..."]
     }

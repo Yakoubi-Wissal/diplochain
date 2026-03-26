@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from datetime import date
+from datetime import date, datetime
+from typing import List, Optional
 
 class DashboardMetricsRead(BaseModel):
     metric_date: date
@@ -12,6 +13,27 @@ class DashboardMetricsRead(BaseModel):
     nb_diplomes_pending: int
     nb_diplomes_revoques: int
     nb_verifications: int
-    updated_at: date
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+class StabilityScoreRead(BaseModel):
+    stability: float
+    security: float
+    network: float
+    anomaly: float
+    recommendations: List[str]
+
+    model_config = {"from_attributes": True}
+
+class AuditEventCreate(BaseModel):
+    service: str
+    event_type: str
+    details: str
+    severity: str = "INFO"
+
+class AuditEventRead(AuditEventCreate):
+    id: int
+    timestamp: datetime
 
     model_config = {"from_attributes": True}

@@ -120,11 +120,11 @@ export function StatCard({ label, value, sub, color = C.blue, icon, delay = 0, t
   );
 }
 
-export function Toast({ message, type = "info", onClose }) {
+export function Toast({ message, type = "info", onDone }) {
   useEffect(() => {
-    const timer = setTimeout(onClose, 4000);
+    const timer = setTimeout(onDone, 4000);
     return () => clearTimeout(timer);
-  }, [onClose]);
+  }, [onDone]);
 
   const map = { success: C.green, error: C.red, info: C.blue, warning: C.amber };
   const color = map[type] || C.blue;
@@ -139,7 +139,7 @@ export function Toast({ message, type = "info", onClose }) {
     }}>
       <Dot status={type.toUpperCase() === "INFO" ? "active" : type.toUpperCase()} pulse />
       <div style={{ flex: 1 }}>{message}</div>
-      <button onClick={onClose} style={{ 
+      <button onClick={onDone} style={{
         background: "transparent", border: "none", color: C.textMut, cursor: "pointer", fontSize: 18,
         display: "flex", alignItems: "center", justifyContent: "center", padding: 4
       }}>×</button>

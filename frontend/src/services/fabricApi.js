@@ -5,7 +5,8 @@
  *   REACT_APP_FABRIC_API=http://localhost:4001
  */
 
-const BASE_URL = "http://localhost:4001";
+const BASE_URL = window.location.hostname === "localhost" ? "http://localhost:8000" : `http://${window.location.hostname}:8000`;
+const FABRIC_API_URL = window.location.hostname === "localhost" ? "http://localhost:4001" : `http://${window.location.hostname}:4001`;
 
 // ─── Timeout helper ───────────────────────────────────────────────────
 const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
@@ -70,26 +71,26 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 /** État des nœuds Fabric */
 export const getNetworkStatus = async () => {
   if (MOCK) { await delay(400); return MOCK_DATA.network; }
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/network/status`, { headers: getHeaders() });
+  return fetchWithTimeout(`${FABRIC_API_URL}/api/fabric/network/status`, { headers: getHeaders() });
 };
 
 /** Liste des canaux */
 export const getChannels = async () => {
   if (MOCK) { await delay(300); return MOCK_DATA.channels; }
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/channels`, { headers: getHeaders() });
+  return fetchWithTimeout(`${FABRIC_API_URL}/api/fabric/channels`, { headers: getHeaders() });
 };
 
 /** Historique des transactions */
 export const getTransactions = async (params = {}) => {
   if (MOCK) { await delay(350); return MOCK_DATA.transactions; }
   const qs = new URLSearchParams(params).toString();
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/transactions${qs ? `?${qs}` : ""}`, { headers: getHeaders() });
+  return fetchWithTimeout(`${FABRIC_API_URL}/api/fabric/transactions${qs ? `?${qs}` : ""}`, { headers: getHeaders() });
 };
 
 /** Logs réseau */
 export const getLogs = async (limit = 50) => {
   if (MOCK) { await delay(200); return MOCK_DATA.logs; }
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/logs?limit=${limit}`, { headers: getHeaders() });
+  return fetchWithTimeout(`${FABRIC_API_URL}/api/fabric/logs?limit=${limit}`, { headers: getHeaders() });
 };
 
 /**
@@ -101,7 +102,7 @@ export const createChannel = async (institutionId) => {
     await delay(2200);
     return { success: true, channelId: `channel-${institutionId}`, msg: "Canal créé et chaincode déployé" };
   }
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/channel/create`, {
+  return fetchWithTimeout(`${FABRIC_API_URL}/api/fabric/channel/create`, {
     method: "POST",
     headers: getHeaders(),
     body: JSON.stringify({ institutionId: parseInt(institutionId, 10) }),
@@ -119,7 +120,7 @@ export const invokeChaincode = async (payload) => {
     const txId = Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("") + "...";
     return { txId, block: 143, status: "VALID" };
   }
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/chaincode/invoke`, {
+  return fetchWithTimeout(`${FABRIC_API_URL}/api/fabric/chaincode/invoke`, {
     method: "POST",
     headers: getHeaders(),
     body: JSON.stringify(payload),
@@ -144,7 +145,7 @@ export const generateReport = async (type, format = "json") => {
   }
   if (format === "pdf") {
     // Téléchargement direct du PDF
-    const res = await fetch(`${BASE_URL}/api/fabric/reports/${type}?format=pdf`, { headers: getHeaders() });
+    const res = await fetch(`${FABRIC_API_URL}/api/fabric/reports/${type}?format=pdf`, { headers: getHeaders() });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -152,7 +153,7 @@ export const generateReport = async (type, format = "json") => {
     URL.revokeObjectURL(url);
     return { success: true };
   }
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/reports/${type}?format=json`, { headers: getHeaders() });
+  return fetchWithTimeout(`${FABRIC_API_URL}/api/fabric/reports/${type}?format=json`, { headers: getHeaders() });
 };
 
 export const getStabilityHistory = async () => {
@@ -200,7 +201,7 @@ export const loginAdmin = async () => {
 /** Récupérer les statistiques globales */
 export const getStats = async () => {
   if (MOCK) { await delay(200); return { total_tx: 142, diplomas: 89, verifications: 45, revocations: 8 }; }
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/stats`, { headers: getHeaders() });
+  return fetchWithTimeout(`${FABRIC_API_URL}/api/fabric/stats`, { headers: getHeaders() });
 };
 
 /** Rapport complet du projet */
@@ -240,7 +241,18 @@ export const getTransactionHistory = async (id, channel = "channel-1") => {
       { tx_id: "tx-202", timestamp: "2024-03-24T14:30:00Z", statut: "REVOQUE", hash_sha256: "HASH-A" },
     ];
   }
-  return fetchWithTimeout(`${BASE_URL}/api/fabric/transactions/${id}/history?channel=${channel}`, { headers: getHeaders() });
+  return fetchWithTimeout(`${FABRIC_API_URL}/api/fabric/transactions/${id}/history?channel=${channel}`, { headers: getHeaders() });
+};
+
+export const getAuditEvents = async (limit = 50) => {
+  if (MOCK) {
+    await delay(300);
+    return [
+      { id: 1, timestamp: new Date().toISOString(), service: "user-service", event_type: "LOGIN_SUCCESS", details: "User admin@diplochain.local logged in", severity: "INFO" },
+      { id: 2, timestamp: new Date().toISOString(), service: "security-scan", event_type: "VULN_DETECTED", details: "Missing CSP header in api-gateway", severity: "WARNING" },
+    ];
+  }
+  return fetchWithTimeout(`${BASE_URL}/api/analytics/events?limit=${limit}`, { headers: getHeaders() });
 };
 
 // Objet nommé pour import groupé
