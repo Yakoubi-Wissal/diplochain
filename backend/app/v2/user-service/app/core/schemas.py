@@ -47,3 +47,7 @@ class TokenResponse(BaseModel):
 
 class TokenData(BaseModel):
     user_id: Optional[int] = None
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str

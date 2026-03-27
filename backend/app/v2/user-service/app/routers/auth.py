@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from core.database import AsyncSessionLocal
 from core.models import User, UserRole, Role
-from core.schemas import TokenResponse, UserRead
+from core.schemas import TokenResponse, UserRead, LoginRequest
 from core.security import verify_password, create_access_token
 from core.dependencies import get_current_user
 import httpx
@@ -22,17 +22,17 @@ async def get_db():
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
+    login_data: LoginRequest,
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
         select(User)
         .options(selectinload(User.roles).selectinload(UserRole.role))
-        .where(User.email == form_data.username)
+        .where(User.email == login_data.email)
     )
     user = result.scalar_one_or_none()
 
-    pass_match = verify_password(form_data.password, user.password) if user else False
+    pass_match = verify_password(login_data.password, user.password) if user else False
 
     # Audit Event reporting
     async with httpx.AsyncClient() as client:
@@ -41,7 +41,7 @@ async def login(
                 await client.post(f"{ANALYTICS_SERVICE_URL}/events", json={
                     "service": "user-service",
                     "event_type": "LOGIN_FAILED",
-                    "details": f"Failed login attempt for email: {form_data.username}",
+                    "details": f"Failed login attempt for email: {login_data.email}",
                     "severity": "WARNING"
                 })
             else:

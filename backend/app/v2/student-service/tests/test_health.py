@@ -26,3 +26,10 @@ async def test_health():
         r = await client.get("/health")
         assert r.status_code in [200, 201]
         assert r.json() == {"status": "healthy"}
+from main import app
+
+@pytest.mark.asyncio
+async def test_health(client: AsyncClient):
+    response = await client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "healthy"}

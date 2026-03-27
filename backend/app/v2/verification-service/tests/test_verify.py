@@ -5,7 +5,7 @@ if str(app_pkg) not in sys.path:
     sys.path.insert(0, str(app_pkg))
 
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import AsyncClient
 from fastapi import status
 
 from main import app
@@ -33,3 +33,23 @@ async def test_qr_and_history():
             print(r2.json())
         assert r2.status_code == status.HTTP_200_OK
         assert "historique_operations_id" in r2.json()
+@pytest.mark.asyncio
+async def test_qr_and_history(client: AsyncClient):
+    # Test Create QR
+    qr_payload = {
+        "diplome_id": 1,
+        "etudiant_id": "E1",
+        "qr_code_path": "path/to/qr.png",
+        "identifiant_opaque": "opaque123",
+        "url_verification": "http://verify.it/opaque123"
+    }
+    response = await client.post("/qr", json=qr_payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["identifiant_opaque"] == "opaque123"
+
+    # Test Read QR
+    qr_id = data["qr_code_records_id"]
+    response = await client.get(f"/qr/{qr_id}")
+    assert response.status_code == 200
+    assert response.json()["identifiant_opaque"] == "opaque123"

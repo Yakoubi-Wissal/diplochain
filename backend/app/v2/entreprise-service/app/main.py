@@ -14,7 +14,7 @@ async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-@app.get("/")
+@app.get("/status")
 async def root():
     return {"service": "entreprise-service", "status": "running"}
 

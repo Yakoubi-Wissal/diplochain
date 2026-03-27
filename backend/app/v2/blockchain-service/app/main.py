@@ -14,7 +14,7 @@ async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-@app.get("/")
+@app.get("/status")
 async def root():
     return {"service": "blockchain-service", "status": "running"}
 
@@ -22,4 +22,4 @@ async def root():
 async def health():
     return {"status": "healthy"}
 
-app.include_router(blockchain.router, prefix="")
+app.include_router(blockchain.router, prefix="/blockchain")

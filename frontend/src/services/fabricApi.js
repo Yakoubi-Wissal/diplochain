@@ -192,9 +192,11 @@ export const createInstitution = async (data) => {
   });
 };
 
-export const loginAdmin = async () => {
+export const loginAdmin = async (credentials) => {
   return fetchWithTimeout(`${BASE_URL}/api/users/auth/login`, {
-    method: "POST", headers: getHeaders(),
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(credentials),
   });
 };
 

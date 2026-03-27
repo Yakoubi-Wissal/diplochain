@@ -16,7 +16,7 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.post("/diplome", response_model=DiplomaBlockchainRead)
 async def record_blockchain(d: DiplomaBlockchainCreate, db: AsyncSession = Depends(get_db)):
