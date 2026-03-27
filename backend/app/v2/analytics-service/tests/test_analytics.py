@@ -5,6 +5,7 @@ from app.core.models import StabilityHistory
 from sqlalchemy import select
 
 @pytest.mark.asyncio
+@pytest.mark.asyncio
 async def test_health_and_metrics(client: AsyncClient, db_session):
     r = await client.get("/health")
     assert r.status_code == status.HTTP_200_OK
@@ -12,6 +13,7 @@ async def test_health_and_metrics(client: AsyncClient, db_session):
     r2 = await client.get("/metrics/daily")
     assert r2.status_code == status.HTTP_200_OK
 
+@pytest.mark.asyncio
 @pytest.mark.asyncio
 async def test_audit_events(client: AsyncClient, db_session):
     # Create an event
@@ -34,6 +36,7 @@ async def test_audit_events(client: AsyncClient, db_session):
     assert len(events) >= 1
     assert events[0]["event_type"] == "TEST_EVENT"
 
+@pytest.mark.asyncio
 @pytest.mark.asyncio
 async def test_security_scan_and_stability(client: AsyncClient, db_session):
     # Initial stability

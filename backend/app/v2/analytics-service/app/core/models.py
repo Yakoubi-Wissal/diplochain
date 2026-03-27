@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Date, Numeric, DateTime, String
 from sqlalchemy.sql import func
-from core.database import Base
+from .database import Base
 
 class DashboardMetricsDaily(Base):
     __tablename__ = "dashboard_metrics_daily"

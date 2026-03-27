@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from core.config import settings
 from core.database import engine, Base
-
+from core import models
 from routers import blockchain
 
 app = FastAPI(title="blockchain-service", version="1.0.0")
@@ -13,12 +12,8 @@ async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-@app.get("/status")
-async def root():
-    return {"service": "blockchain-service", "status": "running"}
-
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
 
-app.include_router(blockchain.router, prefix="/blockchain")
+app.include_router(blockchain.router, prefix="")

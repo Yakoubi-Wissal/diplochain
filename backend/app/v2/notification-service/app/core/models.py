@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime
 from datetime import datetime
-from core.database import Base
+from .database import Base
 
 class Notification(Base):
     __tablename__ = "notification"

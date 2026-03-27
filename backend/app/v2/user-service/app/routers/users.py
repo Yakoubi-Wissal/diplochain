@@ -11,7 +11,7 @@ router = APIRouter(prefix="", tags=["Users"])
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 # dependency
 async def get_db():

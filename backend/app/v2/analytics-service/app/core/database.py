@@ -1,19 +1,23 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from .config import settings
+import os
+from sqlalchemy.pool import StaticPool
 
 # Handle postgresql:// vs postgresql+asyncpg://
-database_url = settings.DATABASE_URL
+database_url = os.getenv("DATABASE_URL", settings.DATABASE_URL)
 if database_url.startswith("postgresql://"):
     database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-import os
-database_url = os.getenv("DATABASE_URL", database_url)
+engine_kwargs = {}
+if database_url.startswith("sqlite"):
+    engine_kwargs["poolclass"] = StaticPool
 
 engine = create_async_engine(
     database_url,
     echo=settings.DEBUG,
-    future=True
+    future=True,
+    **engine_kwargs
 )
 
 AsyncSessionLocal = async_sessionmaker(

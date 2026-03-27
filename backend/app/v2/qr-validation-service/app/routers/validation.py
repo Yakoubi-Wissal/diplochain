@@ -10,7 +10,7 @@ STORAGE_SERVICE_URL = os.getenv("STORAGE_SERVICE_URL", "http://storage-service:8
 
 @router.get("/v/health", tags=["Health"]) # Distinguish from main app health
 async def router_health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.get("/verify/{identifiant_opaque}")
 async def verify_qr(identifiant_opaque: str):

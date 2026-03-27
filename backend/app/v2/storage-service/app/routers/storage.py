@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text,select
 import httpx
@@ -18,9 +18,9 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
-@router.post("/files", response_model=IPFSFileRead)
+@router.post("/files", status_code=status.HTTP_201_CREATED, response_model=IPFSFileRead)
 async def create_file(rec: IPFSFileCreate, db: AsyncSession = Depends(get_db)):
     try:
         f = IPFSFile(cid=rec.cid, status=rec.status)

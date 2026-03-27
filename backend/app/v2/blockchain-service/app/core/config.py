@@ -3,11 +3,11 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "postgresql://user:pass@localhost:5432/diplochain"
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_USER: str = "user"
-    POSTGRES_PASSWORD: str = "pass"
-    POSTGRES_DB: str = "diplochain"
+    DATABASE_URL: str = "postgresql://diplochain_user:diplochain_pass@postgres:5432/diplochain_db"
+    POSTGRES_SERVER: str = "postgres"
+    POSTGRES_USER: str = "diplochain_user"
+    POSTGRES_PASSWORD: str = "diplochain_pass"
+    POSTGRES_DB: str = "diplochain_db"
     
     # JWT
     JWT_SECRET_KEY: str = "your-secret-key-change-in-production"
@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     FABRIC_MSP_ID: str = "Org1MSP"
     FABRIC_WALLET_PATH: str = "/app/wallet"
     FABRIC_CONNECTION_PROFILE: str = "/app/connection-profile.yaml"
-    FABRIC_GATEWAY_HOST: str = "localhost"
+    FABRIC_GATEWAY_HOST: str = "postgres"
     FABRIC_GATEWAY_PORT: int = 7051
     
     # Redis

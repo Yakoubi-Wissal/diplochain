@@ -87,4 +87,4 @@ async def verify_diploma(identifiant_opaque: str):
 
 @app.get("/qr/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}

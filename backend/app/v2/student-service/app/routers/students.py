@@ -16,7 +16,7 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.get("/search", response_model=list[StudentRead])
 async def search_students(

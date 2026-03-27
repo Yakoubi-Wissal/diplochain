@@ -34,7 +34,7 @@ async def test_qr_verify_valid_diploma():
         instance.get = AsyncMock(side_effect=[mock_bc_response, mock_ipfs_response])
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            r = await client.get("/api/v1/qr/verify/opaque_diploma_001")
+            r = await client.get("/verify/opaque_diploma_001")
             assert r.status_code == 200
             data = r.json()
             assert data["is_valid"] is True
@@ -61,7 +61,7 @@ async def test_qr_verify_invalid_diploma():
         instance.get = AsyncMock(side_effect=[mock_bc_response, mock_ipfs_response])
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            r = await client.get("/api/v1/qr/verify/opaque_tampered_001")
+            r = await client.get("/verify/opaque_tampered_001")
             assert r.status_code == 200
             data = r.json()
             assert data["is_valid"] is False

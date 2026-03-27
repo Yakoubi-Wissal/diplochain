@@ -314,7 +314,7 @@ tokentype = Column(String(50))  # ligne 31 → garder
 # Changer le health check vers /users/health
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 ```
 
 ---

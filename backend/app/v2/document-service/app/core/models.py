@@ -1,7 +1,7 @@
 from sqlalchemy import (
     Column, Integer, String, Text, Boolean, Numeric, ForeignKey, DateTime
 )
-from core.database import Base
+from .database import Base
 
 class Rapport(Base):
     __tablename__ = "rapport"
