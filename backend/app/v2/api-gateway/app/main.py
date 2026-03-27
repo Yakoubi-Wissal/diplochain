@@ -105,6 +105,14 @@ async def monitor_requests(request: Request, call_next):
     # Log errors
     if response.status_code >= 400:
         logger.error(f"ANOMALY: Request to {request.url.path} failed with status {response.status_code}")
+        # Detailed logging for errors
+        logger.info(f"Request headers: {dict(request.headers)}")
+        try:
+            body = await request.body()
+            if body:
+                logger.info(f"Request body: {body.decode('utf-8', errors='ignore')}")
+        except Exception as e:
+            logger.error(f"Could not log request body: {e}")
 
     return response
 
