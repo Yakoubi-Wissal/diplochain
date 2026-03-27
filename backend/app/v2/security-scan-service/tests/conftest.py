@@ -10,11 +10,7 @@ app_pkg = service_root / "app"
 if str(app_pkg) not in sys.path:
     sys.path.insert(0, str(app_pkg))
 
-# Standardize clearing for all microservices
-to_del = [m for m in sys.modules if m.startswith(("main", "app.main", "routers", "core"))]
-for m in to_del:
-    del sys.modules[m]
-
+import main
 from main import app
 
 @pytest_asyncio.fixture

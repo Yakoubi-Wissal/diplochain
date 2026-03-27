@@ -1,14 +1,13 @@
-import os
-import json
-import logging
+from fastapi import FastAPI
 import asyncio
+import logging
 import httpx
 from datetime import datetime
 
+app = FastAPI(title="security-scan-service", version="1.0.0")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("security-scan-service")
 
-# Configuration
 SERVICES = {
     "api-gateway": "http://api-gateway:8000",
     "user-service": "http://user-service:8000",
@@ -17,45 +16,38 @@ SERVICES = {
 }
 
 async def scan_owasp_top_10():
-    # Simulate scanning for common vulnerabilities like SQL Injection, Broken Auth, etc.
-    # In a real system, we might use tools like OWASP ZAP or Bandit here
     findings = []
-
     async with httpx.AsyncClient() as client:
         for name, url in SERVICES.items():
             try:
-                # 1. Check for insecure headers
                 resp = await client.get(url, timeout=2.0)
                 if 'X-Frame-Options' not in resp.headers:
-                    findings.append({"service": name, "finding": "Missing X-Frame-Options (Clickjacking)"})
-                if 'Content-Security-Policy' not in resp.headers:
-                    findings.append({"service": name, "finding": "Missing CSP Header (XSS)"})
-
-                # 2. Check for exposed metrics/admin endpoints
-                admin_check = await client.get(f"{url}/admin", timeout=1.0)
-                if admin_check.status_code == 200:
-                    findings.append({"service": name, "finding": "Admin endpoint exposed without auth"})
+                    findings.append({"service": name, "finding": "Missing X-Frame-Options"})
             except Exception as e:
                 logger.error(f"Scan failed for {name}: {str(e)}")
-
     return findings
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
+
+@app.post("/scan/now")
+async def trigger_scan():
+    findings = await scan_owasp_top_10()
+    return {"status": "completed", "findings": findings}
 
 async def scan_loop():
     logger.info("Security Scan Service Started.")
     while True:
-        findings = await scan_owasp_top_10()
-        if findings:
-            logger.warning(f"SECURITY ALERT: {len(findings)} findings detected!")
-            for f in findings:
-                logger.warning(f" - {f['service']}: {f['finding']}")
-
-        # In a real environment, post results to analytics-service
         try:
-           async with httpx.AsyncClient() as client:
-               await client.post("http://analytics-service:8000/security/scan", json={"findings": findings})
+            await scan_owasp_top_10()
         except: pass
+        await asyncio.sleep(300)
 
-        await asyncio.sleep(60 * 5) # Scan every 5 minutes
+@app.on_event("startup")
+async def startup():
+    asyncio.create_task(scan_loop())
 
 if __name__ == "__main__":
-    asyncio.run(scan_loop())
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,12 +1,58 @@
 import sys
 import pathlib
+import pytest
+import pytest_asyncio
+import asyncio
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.pool import StaticPool
 
-# Put both service root and its ``app`` package on sys.path so imports from
-# ``app`` can reach sibling packages like ``routers`` or ``core``.
+# Setup paths
 service_root = pathlib.Path(__file__).parent.parent
 app_pkg = service_root / "app"
-for p in (service_root, app_pkg):
-    sp = str(p)
-    if sp not in sys.path:
-        sys.path.insert(0, sp)
+if str(app_pkg) not in sys.path:
+    sys.path.insert(0, str(app_pkg))
 
+# Standardize clearing for all microservices
+to_del = [m for m in sys.modules if m.startswith(("core", "routers", "models", "main", "schemas"))]
+for m in to_del:
+    del sys.modules[m]
+
+import core.database
+import core.models
+from main import app
+
+# Use SQLite in-memory with StaticPool for test isolation but session persistence
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+engine = create_async_engine(
+    TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool
+)
+TestingSessionLocal = async_sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
+
+# Monkeypatch the database module
+core.database.engine = engine
+core.database.AsyncSessionLocal = TestingSessionLocal
+
+async def override_get_db():
+    async with TestingSessionLocal() as session:
+        yield session
+
+app.dependency_overrides[core.database.get_db] = override_get_db
+import routers.verify
+app.dependency_overrides[routers.verify.get_db] = override_get_db
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(core.models.Base.metadata.create_all)
+    yield
+    await engine.dispose()
+
+@pytest_asyncio.fixture
+async def client():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
