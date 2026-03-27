@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from typing import Optional
@@ -15,9 +15,9 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
-@router.post("/", response_model=NotificationRead)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=NotificationRead)
 async def create_notification(notification: NotificationCreate, db: AsyncSession = Depends(get_db)):
     db_notification = Notification(**notification.model_dump())
     db.add(db_notification)

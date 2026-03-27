@@ -14,7 +14,7 @@ async def get_db():
 
 @router.get("/v/health", tags=["Health"])
 async def router_health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.post("/qr", response_model=QrCodeRecordRead)
 async def create_qr(record: QrCodeRecordBase, db: AsyncSession = Depends(get_db)):

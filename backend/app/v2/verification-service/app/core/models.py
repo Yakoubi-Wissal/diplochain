@@ -1,7 +1,7 @@
 from sqlalchemy import (
     Column, Integer, String, DateTime, ForeignKey
 )
-from core.database import Base
+from .database import Base
 
 class QrCodeRecord(Base):
     __tablename__ = "qr_code_records"

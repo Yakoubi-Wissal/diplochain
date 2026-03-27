@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from core.database import Base
+from .database import Base
 
 class IPFSFile(Base):
     __tablename__ = "ipfs_files"

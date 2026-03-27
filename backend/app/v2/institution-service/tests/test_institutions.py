@@ -26,7 +26,7 @@ async def test_create_and_get_institution(monkeypatch):
             "email_institution": "contact@test.edu",
             "date_creation": "2024-01-01"
         }
-        resp = await client.post("/institutions/", json=payload)
+        resp = await client.post("/institutions", json=payload)
         assert resp.status_code == status.HTTP_201_CREATED
         data = resp.json()
         assert data["nom_institution"] == "Test Uni"
@@ -40,5 +40,5 @@ async def test_create_and_get_institution(monkeypatch):
 @pytest.mark.asyncio
 async def test_list_institutions_filter():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        resp = await client.get("/institutions/?active=true")
+        resp = await client.get("/institutions?active=true")
         assert resp.status_code == status.HTTP_200_OK

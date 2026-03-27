@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, patch, MagicMock
 from httpx import AsyncClient, ASGITransport
 
 # Mock the DB init before importing the app
-with patch("core.database.init_db", new=AsyncMock()):
+with patch("core.database.get_db", new=AsyncMock()):
     from app.main import app
 
 # Override get_db to return a mocked session
@@ -33,22 +33,22 @@ async def test_health():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         r = await client.get("/health")
         assert r.status_code == 200
-        assert r.json() == {"status": "ok"}
+        assert r.json() == {"status": "healthy"}
 
 @pytest.mark.asyncio
 async def test_admin_diplomas():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        r = await client.get("/api/admin/diplomas")
+        r = await client.get("/diplomas")
         assert r.status_code == 200
 
 @pytest.mark.asyncio
 async def test_admin_students():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        r = await client.get("/api/admin/students")
+        r = await client.get("/students")
         assert r.status_code == 200
 
 @pytest.mark.asyncio
 async def test_admin_institutions():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        r = await client.get("/api/admin/institutions")
+        r = await client.get("/institutions")
         assert r.status_code == 200

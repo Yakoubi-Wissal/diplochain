@@ -17,7 +17,7 @@ async def get_db():
 
 @router.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    return {"status": "healthy"}
 
 @router.get("/metrics/daily", response_model=list[DashboardMetricsRead])
 async def list_daily_metrics(db: AsyncSession = Depends(get_db)):

@@ -2,7 +2,7 @@ from sqlalchemy import (
     Column, Integer, String, Date, Numeric, Text, Boolean, DateTime,
     func
 )
-from core.database import Base
+from .database import Base
 
 
 class Institution(Base):

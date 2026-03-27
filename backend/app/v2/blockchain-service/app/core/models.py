@@ -1,7 +1,7 @@
 from sqlalchemy import (
     Column, Integer, String, Date, Numeric, DateTime, func
 )
-from core.database import Base
+from .database import Base
 
 class DiplomaBlockchain(Base):
     __tablename__ = "diplome_blockchain_ext"

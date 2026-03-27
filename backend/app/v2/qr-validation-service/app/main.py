@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from core.config import settings
 from core.database import engine, Base
-
+from core import models
 from routers import validation
 
 app = FastAPI(title="qr-validation-service", version="1.0.0")
@@ -10,15 +9,11 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, 
 
 @app.on_event("startup")
 async def startup():
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-    except Exception as e:
-        print(f"Startup warning: Could not create tables: {e}")
-
-# Include router BEFORE main app health
-app.include_router(validation.router, prefix="/api/v1/qr")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+app.include_router(validation.router, prefix="")
