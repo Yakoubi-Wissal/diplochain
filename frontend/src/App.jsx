@@ -68,7 +68,16 @@ function App() {
     try {
       // 1. Authentification
       addLog("Step 1/4: Authentification Admin...", "info");
-      const auth = await fabricApi.loginAdmin();
+
+      // Pour la sécurité, on demande les credentials au lieu de les coder en dur
+      const email = prompt("Email Admin:", "admin@diplochain.com");
+      const password = prompt("Password:");
+
+      if (!email || !password) {
+        throw new Error("Authentification annulée");
+      }
+
+      const auth = await fabricApi.loginAdmin({ email, password });
       if (auth.access_token) {
         localStorage.setItem("diplochain_token", auth.access_token);
         addLog("SUCCESS: JWT Token validé.", "success");
