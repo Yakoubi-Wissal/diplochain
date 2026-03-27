@@ -12,13 +12,16 @@ async def get_db():
     async with AsyncSessionLocal() as s:
         yield s
 
-@router.get("/health", tags=["Health"])
-async def health():
+@router.get("/v/health", tags=["Health"])
+async def router_health():
     return {"status": "ok"}
 
 @router.post("/qr", response_model=QrCodeRecordRead)
 async def create_qr(record: QrCodeRecordBase, db: AsyncSession = Depends(get_db)):
-    qr = QrCodeRecord(**record.model_dump(), created_at=datetime.utcnow())
+    data = record.model_dump()
+    if data.get("created_at") is None:
+        data["created_at"] = datetime.utcnow()
+    qr = QrCodeRecord(**data)
     db.add(qr)
     await db.commit()
     await db.refresh(qr)
@@ -33,7 +36,6 @@ async def read_qr(qr_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.get("/diploma/{diploma_id}")
 async def verify_diploma_from_services(diploma_id: int):
-    # simplified inter-service example
     import httpx
     async with httpx.AsyncClient(timeout=5) as client:
         bc_resp = await client.get(f"http://blockchain-service:8000/blockchain/diplome/{diploma_id}")

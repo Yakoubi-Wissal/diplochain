@@ -16,12 +16,9 @@ async def startup():
     except Exception as e:
         print(f"Startup warning: Could not create tables: {e}")
 
-@app.get("/")
-async def root():
-    return {"service": "qr-validation-service", "status": "running"}
+# Include router BEFORE main app health
+app.include_router(validation.router, prefix="/api/v1/qr")
 
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
-
-app.include_router(validation.router, prefix="")

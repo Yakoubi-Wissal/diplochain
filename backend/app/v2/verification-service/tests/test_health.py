@@ -1,13 +1,8 @@
-import sys, pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
-
 import pytest
-from httpx import AsyncClient, ASGITransport
-from app.main import app
+from httpx import AsyncClient
 
 @pytest.mark.asyncio
-async def test_health():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        r = await client.get("/health")
-        assert r.status_code == 200
-        assert r.json() == {"status": "ok"}
+async def test_health(client: AsyncClient):
+    response = await client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "healthy"}

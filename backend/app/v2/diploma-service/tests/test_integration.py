@@ -1,31 +1,23 @@
 import pytest
-import httpx
-from fastapi import status
-import uuid
-
-BASE_URL = "http://localhost:8000"
+from httpx import AsyncClient
 
 @pytest.mark.asyncio
-async def test_health():
-    async with httpx.AsyncClient(timeout=10) as client:
-        response = await client.get(f"{BASE_URL}/diplomas/")
-        assert response.status_code == 200 or response.status_code == 404
+async def test_health_integration(client: AsyncClient):
+    response = await client.get("/health")
+    assert response.status_code == 200
 
 @pytest.mark.asyncio
-async def test_create_diploma():
+async def test_create_diploma_integration(client: AsyncClient):
     diploma_data = {
-        "id_diplome": str(uuid.uuid4()),
-        "titre": "Master in Blockchain",
-        "mention": "Tres Bien",
-        "date_emission": "2023-12-01",
-        "annee_promotion": "2023",
-        "statut": "VALIDE",
-        "etudiant_id": "STUD001",
+        "etudiant_id": "STUD002",
+        "titre": "Bachelor in CS",
+        "mention": "Bien",
+        "hash_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ipfs_cid": "QmYwAPJzv5CZsnAQCte71V3Hn7m5KuW4b2sJnY985WJ66p",
         "institution_id": 1,
-        "specialite_id": 1
+        "uploaded_by": 1,
+        "specialite_id": "S2"
     }
-    async with httpx.AsyncClient(timeout=10) as client:
-        response = await client.post(f"{BASE_URL}/diplomas/", json=diploma_data)
-        assert response.status_code == 200
-        data = response.json()
-        assert data["titre"] == diploma_data["titre"]
+    response = await client.post("/", json=diploma_data)
+    assert response.status_code == 200
+    assert response.json()["titre"] == "Bachelor in CS"
